@@ -1,0 +1,9 @@
+{"number": 101, "kind": "issue", "expected_slop": null, "expected_duplicate_of": null, "expected_priority": "high", "expected_labels_contains": ["bug"]}
+{"number": 102, "kind": "issue", "expected_slop": null, "expected_duplicate_of": 101, "expected_priority": "high", "expected_labels_contains": ["duplicate"]}
+{"number": 103, "kind": "pr", "expected_slop": true, "expected_duplicate_of": null, "expected_priority": null, "expected_labels_contains": ["likely-ai-slop"]}
+{"number": 104, "kind": "pr", "expected_slop": false, "expected_duplicate_of": null, "expected_priority": null, "expected_labels_contains": ["bug"]}
+{"number": 105, "kind": "issue", "expected_slop": null, "expected_duplicate_of": null, "expected_priority": "low", "expected_labels_contains": ["documentation", "good first issue"]}
+{"number": 106, "kind": "issue", "expected_slop": null, "expected_duplicate_of": null, "expected_priority": "low", "expected_labels_contains": ["needs-more-info"]}
+{"number": 107, "kind": "pr", "expected_slop": false, "expected_duplicate_of": null, "expected_priority": null, "expected_labels_contains": ["documentation"]}
+{"number": 108, "kind": "issue", "expected_slop": null, "expected_duplicate_of": null, "expected_priority": "high", "expected_labels_contains": ["security"]}
+{"number": 109, "kind": "pr", "expected_slop": true, "expected_duplicate_of": null, "expected_priority": null, "expected_labels_contains": ["likely-ai-slop"]}

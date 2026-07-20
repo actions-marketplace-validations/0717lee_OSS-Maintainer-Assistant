@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>maintainer-agent</title>
+  <meta name="description" content="An explainable, human-gated multi-agent assistant that triages issues and flags AI-slop PRs." />
+  <style>
+    :root {
+      --paper: #fbfaf8; --surface: #ffffff;
+      --ink: #1a1a17; --ink-2: #5c594f; --ink-3: #97928a;
+      --line: #ebe7df; --line-2: #dcd6ca;
+      --accent: #b45309; --accent-weak: #fbf1e6;
+      --danger: #b42318; --warning: #b54708; --success: #12694a; --info: #445f7a; --neutral: #8a867e;
+      --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Times New Roman", serif;
+      --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --mono: ui-monospace, "SF Mono", "Cascadia Code", "Consolas", monospace;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--sans);
+      line-height: 1.55; -webkit-font-smoothing: antialiased; }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; text-underline-offset: 2px; }
+    .wrap { max-width: 1140px; margin: 0 auto; padding: 0 28px; }
+    .rule-top { height: 3px; background: var(--accent); }
+
+    header { border-bottom: 1px solid var(--line); background: var(--paper); position: sticky; top: 0; z-index: 5; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; padding-top: 22px; gap: 16px; }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .mark { width: 26px; height: 26px; border-radius: 6px; background: var(--accent); color: #fff;
+      font-family: var(--serif); font-weight: 600; font-size: 16px; display: grid; place-items: center; }
+    .wordmark { font-family: var(--serif); font-size: 19px; font-weight: 600; letter-spacing: -0.01em; }
+    .langtoggle { display: inline-flex; border: 1px solid var(--line-2); border-radius: 6px; overflow: hidden; flex-shrink: 0; }
+    .langtoggle button { background: transparent; color: var(--ink-2); border: 0; border-radius: 0;
+      padding: 5px 11px; font-size: 12.5px; font-weight: 500; cursor: pointer; font-family: var(--sans); }
+    .langtoggle button + button { border-left: 1px solid var(--line-2); }
+    .langtoggle button.active { background: var(--accent); color: #fff; }
+    .sub { color: var(--ink-2); font-size: 13.5px; margin: 6px 0 0; max-width: 62ch; }
+    .controls { display: flex; gap: 10px; margin: 16px 0 0; flex-wrap: wrap; align-items: center; }
+    input { background: var(--surface); border: 1px solid var(--line-2); color: var(--ink);
+      padding: 9px 13px; border-radius: 6px; font-size: 14px; min-width: 300px; font-family: var(--sans);
+      transition: border-color .15s ease, box-shadow .15s ease; }
+    input::placeholder { color: var(--ink-3); }
+    input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-weak); }
+    button.act { background: var(--accent); color: #fff; border: 1px solid var(--accent); padding: 9px 16px;
+      border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 14px; font-family: var(--sans); transition: opacity .15s ease; }
+    button.act:hover { opacity: .9; }
+    button.secondary { background: transparent; color: var(--ink); border: 1px solid var(--line-2);
+      font-weight: 500; padding: 9px 16px; border-radius: 6px; cursor: pointer; font-size: 14px; font-family: var(--sans); }
+    button.secondary:hover { border-color: var(--ink-3); }
+    button:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--accent-weak); }
+    .hint { color: var(--ink-3); font-size: 12.5px; }
+    .status { font-family: var(--mono); font-size: 12px; color: var(--ink-3); padding: 14px 0 18px; }
+    .status span { color: var(--ink-2); }
+
+    .stats { display: flex; flex-wrap: wrap; gap: 0 40px; padding: 26px 0 22px; border-bottom: 1px solid var(--line); }
+    .stat { padding: 2px 0; }
+    .stat .n { font-family: var(--serif); font-size: 38px; line-height: 1; font-weight: 600; letter-spacing: -0.02em; }
+    .stat.hot .n { color: var(--danger); }
+    .stat .l { font-size: 11px; letter-spacing: .09em; text-transform: uppercase; color: var(--ink-3); margin-top: 8px; }
+
+    main { padding: 8px 0 64px; }
+    .cols { display: grid; grid-template-columns: 1fr 336px; gap: 44px; align-items: start; }
+    @media (max-width: 980px) { .cols { grid-template-columns: 1fr; gap: 28px; } }
+    .col-title { font-family: var(--serif); font-size: 14px; font-weight: 600; color: var(--ink-2); margin: 22px 0 2px; }
+
+    .list { margin-top: 6px; }
+    .item { border-bottom: 1px solid var(--line); }
+    .item:first-child { border-top: 1px solid var(--line); }
+    .row { display: flex; align-items: center; gap: 12px; padding: 15px 14px; cursor: pointer;
+      transition: background .15s ease, box-shadow .15s ease; }
+    .row:hover { background: var(--accent-weak); box-shadow: inset 2px 0 0 var(--accent); }
+    .item.open .row { background: var(--surface); box-shadow: inset 2px 0 0 var(--accent); }
+    .num { font-family: var(--mono); font-size: 12.5px; color: var(--ink-3); min-width: 52px; }
+    .kind { font-family: var(--mono); font-size: 10px; letter-spacing: .08em; text-transform: uppercase;
+      color: var(--ink-3); border: 1px solid var(--line-2); border-radius: 4px; padding: 1px 6px; }
+    .title { flex: 1; font-family: var(--serif); font-size: 16px; font-weight: 600; letter-spacing: -0.01em; color: var(--ink); min-width: 0; }
+    .meta { display: flex; align-items: center; gap: 14px; flex-shrink: 0; }
+    .chev { color: var(--ink-3); font-size: 15px; transition: transform .15s ease; margin-left: 2px; }
+    .item.open .chev { transform: rotate(90deg); color: var(--accent); }
+
+    .tag { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--ink-2); white-space: nowrap; }
+    .tag .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--neutral); flex-shrink: 0; }
+    .t-danger .dot { background: var(--danger); } .t-warning .dot { background: var(--warning); }
+    .t-success .dot { background: var(--success); } .t-info .dot { background: var(--info); }
+    .t-neutral .dot { background: var(--neutral); }
+    .score { font-family: var(--mono); font-size: 12px; color: var(--ink-3); }
+    .pri { font-family: var(--mono); font-size: 11.5px; color: var(--ink-3); }
+    .pri-high { color: var(--danger); } .pri-med { color: var(--warning); }
+
+    .body { display: none; padding: 2px 16px 22px; }
+    .item.open .body { display: block; }
+    .chips { display: flex; gap: 8px; flex-wrap: wrap; margin: 4px 0 6px; }
+    .chip { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line-2);
+      border-radius: 4px; padding: 2px 8px; font-size: 12px; color: var(--ink-2); }
+    .chip .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--neutral); }
+    .agent { padding: 12px 0; border-top: 1px solid var(--line); }
+    .agent:first-of-type { border-top: 0; }
+    .a-head { display: flex; align-items: center; gap: 10px; }
+    .a-name { font-family: var(--mono); font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); }
+    .conf { font-family: var(--mono); font-size: 11px; color: var(--ink-3); margin-left: auto; }
+    .rationale { color: var(--ink-2); font-size: 13.5px; margin: 5px 0 6px; }
+    .ev { color: var(--ink-2); font-size: 12.5px; padding-left: 16px; position: relative; margin: 2px 0; }
+    .ev::before { content: "—"; position: absolute; left: 0; color: var(--ink-3); }
+    .ev .k { color: var(--ink-3); }
+    .ev .w { font-family: var(--mono); }
+    .ev .w.pos { color: var(--danger); } .ev .w.neg { color: var(--success); }
+    .draft-label { font-family: var(--mono); font-size: 10px; letter-spacing: .09em; text-transform: uppercase;
+      color: var(--ink-3); margin: 14px 0 6px; }
+    .draft { background: var(--paper); border: 1px solid var(--line); border-left: 2px solid var(--accent);
+      border-radius: 6px; padding: 12px 14px; white-space: pre-wrap; font-size: 13.5px; color: var(--ink); }
+    .approval { font-family: var(--mono); font-size: 11px; color: var(--ink-3); margin-top: 14px; }
+
+    .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 18px 20px; position: sticky; top: 92px; }
+    .panel h2 { font-family: var(--serif); font-size: 15px; font-weight: 600; margin: 0 0 8px; }
+    .md h3 { font-family: var(--serif); font-size: 15px; margin: 16px 0 4px; font-weight: 600; }
+    .md h4 { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); margin: 14px 0 5px; }
+    .md p { font-size: 13px; color: var(--ink-2); margin: 4px 0; }
+    .md ul { margin: 4px 0; padding-left: 16px; } .md li { font-size: 13px; color: var(--ink-2); margin: 3px 0; }
+    .md blockquote { border-left: 2px solid var(--accent); margin: 8px 0; padding: 2px 12px; color: var(--ink-2); font-style: italic; }
+    .md a { color: var(--accent); }
+    .loading { color: var(--ink-3); padding: 28px 4px; font-size: 14px; }
+    footer { border-top: 1px solid var(--line); color: var(--ink-3); font-size: 12.5px; padding: 20px 0 40px; }
+    footer a { color: var(--ink-2); }
+  </style>
+</head>
+<body>
+  <div class="rule-top"></div>
+  <header>
+    <div class="wrap">
+      <div class="topbar">
+        <div class="brand"><div class="mark">m</div><div class="wordmark">maintainer-agent</div></div>
+        <div class="langtoggle" id="lang">
+          <button data-lang="en">EN</button><button data-lang="zh">中文</button>
+        </div>
+      </div>
+      <p class="sub" id="tagline"></p>
+      <div class="controls">
+        <input id="repo" aria-label="Repository" />
+        <button id="go" class="act"></button>
+        <button id="demo" class="secondary"></button>
+        <span class="hint" id="hint"></span>
+      </div>
+      <div class="status" id="status"></div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div class="stats" id="stats"></div>
+    <div class="cols">
+      <section>
+        <div class="col-title" id="col-title"></div>
+        <div class="list" id="items"></div>
+      </section>
+      <aside>
+        <div class="panel">
+          <h2 id="digest-title"></h2>
+          <div class="md" id="digest"></div>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <footer class="wrap">
+    <span id="footer-text"></span>
+    <a href="https://github.com/0717lee/OSS-Maintainer-Assistant" target="_blank" rel="noopener" id="source-link"></a>
+  </footer>
+
+  <script>
+    const I18N = {
+      en: {
+        tagline: "A read-only, human-gated assistant that triages issues, flags likely AI slop, reproduces bugs, and drafts replies — every call shows its evidence.",
+        placeholder: "owner/name  (leave blank for the offline demo)",
+        analyze: "Analyze", demo: "Offline demo",
+        hint: "Public repos work without a token (rate-limited).",
+        listTitle: "Issues & pull requests", digestTitle: "Maintainer digest",
+        footer: "Read-only by default · nothing is posted without approval · ", source: "source",
+        loading: "Running the multi-agent pipeline…", loadingDemo: "Loading the offline demo…",
+        conf: "conf", draft: "Suggested reply (draft)", proposed: "proposed actions (require approval): ",
+        st: { source: "source", backend: "backend", llm: "llm", run: "run", items: "items" },
+        stat: { reviewed: "reviewed", attention: "needs attention", duplicates: "duplicates",
+          ready: "ready to review", good_first: "good first issue", more_info: "needs info" },
+        errPre: "Couldn't load: ", errSuf: ". Check the owner/name and rate limits, or try the offline demo.",
+      },
+      zh: {
+        tagline: "只读、需人工确认的助手：分诊 issue、识别疑似 AI 灌水、复现 bug、起草回复——每个判断都附证据。",
+        placeholder: "owner/name（留空则加载离线演示）",
+        analyze: "分析", demo: "离线演示",
+        hint: "公开仓库无需 token 即可分析（有速率限制）。",
+        listTitle: "Issues 与 Pull Requests", digestTitle: "维护者摘要",
+        footer: "默认只读 · 未经批准不会发布 · ", source: "源码",
+        loading: "正在运行多 Agent 流水线…", loadingDemo: "正在加载离线演示…",
+        conf: "置信", draft: "建议回复（草稿）", proposed: "建议动作（需批准）：",
+        st: { source: "来源", backend: "后端", llm: "模型", run: "运行", items: "条" },
+        stat: { reviewed: "已审阅", attention: "需关注", duplicates: "疑似重复",
+          ready: "待评审", good_first: "适合新手", more_info: "信息不足" },
+        errPre: "加载失败：", errSuf: "。请检查 owner/name 与速率限制，或试用离线演示。",
+      },
+    };
+    const VMAP_ZH = {
+      "likely-ai-slop": "疑似 AI 灌水", "needs-work": "待完善", "looks-good": "良好", "duplicate": "重复",
+      "security": "安全", "bug": "缺陷", "needs-more-info": "信息不足", "documentation": "文档",
+      "enhancement": "增强", "question": "提问", "reproduced": "已复现", "not-reproduced": "未复现",
+      "reply-drafted": "已拟回复", "not-applicable": "不适用", "needs-triage": "待分诊", "good first issue": "适合新手",
+    };
+    const PRI_ZH = { high: "高", medium: "中", low: "低", "-": "-" };
+    const AGENT_ZH = { triage: "分诊", quality: "质量", reproducer: "复现", responder: "回复" };
+    const TONE = {
+      "likely-ai-slop": "danger", "security": "danger", "bug": "danger", "reproduced": "danger",
+      "needs-work": "warning", "needs-more-info": "warning",
+      "looks-good": "success", "not-reproduced": "success", "good first issue": "success",
+      "duplicate": "info", "documentation": "info", "enhancement": "info", "question": "info",
+      "reply-drafted": "neutral", "not-applicable": "neutral", "needs-triage": "neutral",
+    };
+
+    const state = { lang: "en", repo: "", data: null };
+    const L = () => I18N[state.lang];
+    const tone = (v) => TONE[v] || "neutral";
+    const tV = (v) => (state.lang === "zh" ? (VMAP_ZH[v] || v) : v);
+    const tPri = (p) => (state.lang === "zh" ? (PRI_ZH[p] || p) : p);
+    const tAgent = (a) => (state.lang === "zh" ? (AGENT_ZH[a] || a) : a);
+    const esc = (s) => (s || "").replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
+    const agent = (r, name) => (r.results.find(x => x.agent === name) || {}).decision;
+    const action = (r, type) => r.actions.find(a => a.type === type);
+    const tag = (v) => `<span class="tag t-${tone(v)}"><i class="dot"></i>${esc(tV(v))}</span>`;
+
+    function renderMarkdown(md) {
+      const lines = (md || "").split("\n");
+      let html = "", inList = false;
+      const inline = (t) => esc(t)
+        .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+        .replace(/\[(.+?)\]\((.+?)\)/g, (m, t2, u) =>
+          /^https?:\/\/[^"\s]+$/i.test(u) ? '<a href="' + u + '" target="_blank" rel="noopener">' + t2 + '</a>' : m)
+        .replace(/_(.+?)_/g, "<em>$1</em>");
+      for (const line of lines) {
+        if (line.startsWith("## ")) { if (inList) { html += "</ul>"; inList = false; } html += "<h4>" + inline(line.slice(3)) + "</h4>"; }
+        else if (line.startsWith("# ")) { if (inList) { html += "</ul>"; inList = false; } html += "<h3>" + inline(line.slice(2)) + "</h3>"; }
+        else if (line.startsWith("> ")) { html += "<blockquote>" + inline(line.slice(2)) + "</blockquote>"; }
+        else if (line.startsWith("- ")) { if (!inList) { html += "<ul>"; inList = true; } html += "<li>" + inline(line.slice(2)) + "</li>"; }
+        else { if (inList) { html += "</ul>"; inList = false; } if (line.trim()) html += "<p>" + inline(line) + "</p>"; }
+      }
+      if (inList) html += "</ul>";
+      return html;
+    }
+
+    function renderStats(s) {
+      const c = s.counts || {}, st = L().stat;
+      const cell = (n, label, hot) =>
+        `<div class="stat ${hot && n > 0 ? "hot" : ""}"><div class="n">${n}</div><div class="l">${label}</div></div>`;
+      document.getElementById("stats").innerHTML =
+        cell(s.total, st.reviewed) + cell(c.attention || 0, st.attention, true) +
+        cell(c.duplicates || 0, st.duplicates) + cell(c.ready || 0, st.ready) +
+        cell(c.good_first || 0, st.good_first) + cell(c.more_info || 0, st.more_info);
+    }
+
+    function evidenceHtml(dec) {
+      if (!dec || !dec.evidence || !dec.evidence.length) return "";
+      return dec.evidence.map(e => {
+        const w = e.weight || 0, cls = w > 0 ? "pos" : (w < 0 ? "neg" : "");
+        const wtxt = w ? ` <span class="w ${cls}">(${w > 0 ? "+" : ""}${w.toFixed(2)})</span>` : "";
+        return `<div class="ev"><span class="k">${esc(e.kind)}</span> · ${esc(e.detail)}${wtxt}</div>`;
+      }).join("");
+    }
+
+    function agentBlock(r, name) {
+      const d = agent(r, name);
+      if (!d) return "";
+      let extra = "";
+      if (name === "responder" && d.data && d.data.draft) {
+        extra = `<div class="draft-label">${L().draft}</div><div class="draft">${esc(d.data.draft)}</div>`;
+      }
+      return `<div class="agent">
+        <div class="a-head"><span class="a-name">${tAgent(name)}</span>${tag(d.verdict)}<span class="conf">${L().conf} ${(d.confidence || 0).toFixed(2)}</span></div>
+        <div class="rationale">${esc(d.rationale)}</div>
+        ${evidenceHtml(d)}${extra}</div>`;
+    }
+
+    function priClass(p) { return p === "high" ? "pri-high" : (p === "medium" ? "pri-med" : ""); }
+
+    function itemRow(r) {
+      const it = r.item;
+      const tri = agent(r, "triage") || {}, qual = agent(r, "quality") || {};
+      const slop = (qual.data && qual.data.slop_score) || 0;
+      const labels = (action(r, "add_labels")?.payload.labels) || [];
+      const pri = (tri.data && tri.data.priority) || "-";
+      const kindLabel = it.kind === "pull_request" ? "PR" : "issue";
+      const qualCell = qual.verdict && qual.verdict !== "not-applicable" ? `${tag(qual.verdict)}<span class="score">${slop}</span>` : "";
+      const chips = labels.map(l => `<span class="chip t-${tone(l)}"><i class="dot"></i>${esc(tV(l))}</span>`).join("");
+      const agents = ["triage", "quality", "reproducer", "responder"].map(a => agentBlock(r, a)).join("");
+      const acts = r.actions.map(a => a.type).join(", ");
+      return `<div class="item">
+        <div class="row" onclick="this.parentNode.classList.toggle('open')">
+          <span class="num">#${it.number}</span><span class="kind">${kindLabel}</span>
+          <span class="title">${esc(it.title)}</span>
+          <span class="meta"><span class="pri ${priClass(pri)}">${esc(tPri(pri))}</span>${tag(tri.verdict || "-")}${qualCell}<span class="chev">›</span></span>
+        </div>
+        <div class="body"><div class="chips">${chips}</div>${agents}
+          <div class="approval">${L().proposed}${acts}</div></div>
+      </div>`;
+    }
+
+    function renderData() {
+      const data = state.data;
+      if (!data) return;
+      document.getElementById("status").innerHTML =
+        `${L().st.source} <span>${esc(data.offline ? "fixtures" : data.repo)}</span> &nbsp; ${L().st.backend} <span>${esc(data.backend)}</span>` +
+        ` &nbsp; ${L().st.llm} <span>${esc(data.llm)}</span> &nbsp; ${L().st.run} <span>${esc(data.run_id)}</span> &nbsp; ${data.count} ${L().st.items}`;
+      renderStats(data.stats);
+      document.getElementById("items").innerHTML = data.results.map(itemRow).join("");
+      document.getElementById("digest").innerHTML = renderMarkdown(data.digest_md);
+    }
+
+    function applyStatic() {
+      const t = L();
+      document.getElementById("tagline").textContent = t.tagline;
+      document.getElementById("repo").placeholder = t.placeholder;
+      document.getElementById("go").textContent = t.analyze;
+      document.getElementById("demo").textContent = t.demo;
+      document.getElementById("hint").textContent = t.hint;
+      document.getElementById("col-title").textContent = t.listTitle;
+      document.getElementById("digest-title").textContent = t.digestTitle;
+      document.getElementById("footer-text").textContent = t.footer;
+      document.getElementById("source-link").textContent = t.source;
+      document.documentElement.lang = state.lang === "zh" ? "zh-CN" : "en";
+      [...document.querySelectorAll("#lang button")].forEach(b =>
+        b.classList.toggle("active", b.dataset.lang === state.lang));
+    }
+
+    async function analyze(repo) {
+      state.repo = repo;
+      const items = document.getElementById("items");
+      items.innerHTML = `<div class="loading">${repo ? L().loading : L().loadingDemo}</div>`;
+      document.getElementById("status").textContent = "";
+      try {
+        const q = "?lang=" + state.lang + (repo ? "&repo=" + encodeURIComponent(repo) : "");
+        const res = await fetch("/api/run" + q);
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        state.data = await res.json();
+        renderData();
+      } catch (e) {
+        items.innerHTML = `<div class="loading">${L().errPre}${esc(String(e))}${L().errSuf}</div>`;
+      }
+    }
+
+    function setLang(lang) {
+      state.lang = lang;
+      try { localStorage.setItem("ma_lang", lang); } catch (e) {}
+      applyStatic();
+      analyze(state.repo);
+    }
+
+    document.getElementById("go").onclick = () => analyze(document.getElementById("repo").value.trim());
+    document.getElementById("demo").onclick = () => { document.getElementById("repo").value = ""; analyze(""); };
+    document.getElementById("repo").addEventListener("keydown", (e) => { if (e.key === "Enter") document.getElementById("go").click(); });
+    document.getElementById("lang").addEventListener("click", (e) => {
+      const b = e.target.closest("button"); if (b && b.dataset.lang !== state.lang) setLang(b.dataset.lang);
+    });
+
+    (function init() {
+      let saved = null;
+      try { saved = localStorage.getItem("ma_lang"); } catch (e) {}
+      state.lang = saved || ((navigator.language || "en").toLowerCase().startsWith("zh") ? "zh" : "en");
+      applyStatic();
+      analyze("");
+    })();
+  </script>
+</body>
+</html>

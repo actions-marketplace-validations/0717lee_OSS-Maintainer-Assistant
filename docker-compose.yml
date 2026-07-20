@@ -1,0 +1,18 @@
+# One-command run: `docker compose up --build` -> http://localhost:8000
+services:
+  maintainer-agent:
+    build: .
+    image: maintainer-agent:latest
+    ports:
+      - "8000:8000"
+    environment:
+      - MAINTAINER_AGENT_LOG_LEVEL=INFO
+      # Optional: enable a real LLM / higher GitHub rate limits.
+      # - MAINTAINER_AGENT_LLM_MODEL=gpt-4o-mini
+      # - OPENAI_API_KEY=${OPENAI_API_KEY}
+      # - GITHUB_TOKEN=${GITHUB_TOKEN}
+    # Bug reproduction runs snippets in Docker. To enable it from inside this
+    # container, mount the host Docker socket (understand the security tradeoff):
+    # volumes:
+    #   - /var/run/docker.sock:/var/run/docker.sock
+    restart: unless-stopped

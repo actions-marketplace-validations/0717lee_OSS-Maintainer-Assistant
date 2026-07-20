@@ -1,0 +1,57 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "maintainer-agent"
+version = "0.1.0"
+description = "A multi-agent open-source maintainer assistant: triage, AI-slop quality review, sandboxed bug reproduction, explainable reply drafts, and digests."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "maintainer-agent" }]
+keywords = ["ai-agents", "langgraph", "github", "open-source", "triage", "ai-slop"]
+
+# Core runtime deps kept intentionally light. Heavy/optional integrations
+# (litellm, langgraph, chromadb) are import-guarded so the project runs offline.
+dependencies = [
+    "pydantic>=2.5",
+    "httpx>=0.27",
+    "PyYAML>=6.0",
+    "typer>=0.15",
+    "rich>=13.7",
+    "python-dotenv>=1.0",
+    "fastapi>=0.110",
+    "uvicorn[standard]>=0.29",
+]
+
+[project.optional-dependencies]
+# Real LLM + graph orchestration + vector store. Not required for the offline demo.
+llm = ["litellm>=1.40"]
+graph = ["langgraph>=0.2"]
+vectors = ["faiss-cpu>=1.8"]
+chroma = ["chromadb>=0.5"]
+all = ["litellm>=1.40", "langgraph>=0.2", "faiss-cpu>=1.8"]
+dev = ["pytest>=8.0", "pytest-cov>=5.0", "ruff>=0.5"]
+
+[project.scripts]
+maintainer-agent = "maintainer_agent.cli:app"
+
+[tool.setuptools.packages.find]
+include = ["maintainer_agent*"]
+
+[tool.setuptools.package-data]
+maintainer_agent = [
+    "configs/*.yaml",
+    "github/fixtures/**/*",
+    "eval/*.jsonl",
+    "api/static/*",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"

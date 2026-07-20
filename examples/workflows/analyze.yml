@@ -1,0 +1,34 @@
+# maintainer-agent - example workflow for YOUR repository.
+#
+# Copy this file into `.github/workflows/` in the repo you maintain, and
+# replace `0717lee/OSS-Maintainer-Assistant@v1` with the published action reference
+# (or `docker://ghcr.io/0717lee/oss-maintainer-assistant:latest` after publishing).
+#
+# It is read-only: it posts a triage + AI-slop digest to the Actions "Summary"
+# tab. It never comments on or closes anything.
+
+name: maintainer-agent
+
+on:
+  issues:
+    types: [opened, reopened]
+  pull_request:
+    types: [opened, reopened, synchronize]
+  schedule:
+    - cron: "0 8 * * 1" # weekly digest
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: read
+  pull-requests: read
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    steps:
+      - name: maintainer-agent (read-only digest -> job summary)
+        uses: 0717lee/OSS-Maintainer-Assistant@v1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          limit: "30"

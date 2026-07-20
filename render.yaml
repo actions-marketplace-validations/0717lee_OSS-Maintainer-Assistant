@@ -1,0 +1,21 @@
+# Render.com blueprint - one-click deploy of the dashboard + JSON API.
+# It builds the Dockerfile and binds $PORT automatically (see the Docker CMD).
+services:
+  - type: web
+    name: maintainer-agent
+    runtime: docker
+    plan: free
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: MAINTAINER_AGENT_LOG_LEVEL
+        value: INFO
+      - key: MAINTAINER_AGENT_CACHE_TTL
+        value: "120"
+      # Optional: raise GitHub rate limits and/or enable a real LLM.
+      # - key: GITHUB_TOKEN
+      #   sync: false
+      # - key: MAINTAINER_AGENT_LLM_MODEL
+      #   value: gpt-4o-mini
+      # - key: OPENAI_API_KEY
+      #   sync: false

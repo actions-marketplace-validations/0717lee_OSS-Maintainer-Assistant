@@ -1,0 +1,33 @@
+name: "maintainer-agent"
+description: "Triage issues/PRs, flag likely AI slop, and post a maintainer digest to the workflow summary. Read-only."
+author: "maintainer-agent"
+branding:
+  icon: "shield"
+  color: "purple"
+
+inputs:
+  repo:
+    description: "owner/name to analyze. Defaults to the current repository."
+    required: false
+    default: ""
+  limit:
+    description: "Maximum number of open items to analyze."
+    required: false
+    default: "30"
+  github-token:
+    description: "Token used to read issues/PRs (defaults to the workflow token)."
+    required: false
+    default: ""
+
+outputs:
+  digest-path:
+    description: "Path to the generated digest markdown file."
+
+runs:
+  using: "docker"
+  image: "Dockerfile"
+  entrypoint: "/app/action-entrypoint.sh"
+  env:
+    INPUT_REPO: ${{ inputs.repo }}
+    INPUT_LIMIT: ${{ inputs.limit }}
+    GITHUB_TOKEN: ${{ inputs.github-token || github.token }}

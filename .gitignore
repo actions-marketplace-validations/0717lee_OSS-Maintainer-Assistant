@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+.env
+
+# Runtime artifacts (audit logs, cached indexes, run outputs)
+.runtime/
+*.log
+
+# Node / Vite dashboard
+web/node_modules/
+web/dist/
+npm-debug.log*
+
+# Tooling
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

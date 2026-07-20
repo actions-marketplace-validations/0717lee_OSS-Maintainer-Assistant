@@ -1,0 +1,49 @@
+# Demo repo config for the offline fixtures.
+# This doubles as a template: copy it and point `repo` / `contributing_path`
+# at your own project. CLI can also target any live public repo directly.
+repo: octocat/octo-demo
+description: A small demo repository used to showcase the maintainer agent offline.
+
+# CONTRIBUTING text is used by the Quality/AI-slop agent as the "job description"
+# that pull requests are evaluated against.
+contributing_path: octo-demo/contributing.md
+
+labels:
+  - bug
+  - enhancement
+  - documentation
+  - question
+  - security
+  - good first issue
+  - needs-more-info
+  - duplicate
+  - needs-work
+  - likely-ai-slop
+
+# Keyword-based label hints (combined with LLM/heuristic signals).
+label_rules:
+  - label: documentation
+    keywords: ["readme", "docs", "typo", "documentation", "spelling"]
+  - label: security
+    keywords: ["security", "rce", "arbitrary code", "vulnerability", "cve", "injection"]
+  - label: bug
+    keywords: ["crash", "error", "traceback", "exception", "zerodivision", "broken"]
+
+priority_keywords:
+  high: ["crash", "data loss", "security", "rce", "regression", "cannot", "broken", "arbitrary code"]
+  medium: ["error", "fails", "unexpected", "incorrect", "wrong"]
+  low: ["typo", "docs", "nit", "cosmetic", "spelling"]
+
+bug_keywords:
+  - error
+  - crash
+  - traceback
+  - exception
+  - stack trace
+  - reproduce
+  - steps to reproduce
+  - zerodivisionerror
+
+slop_threshold: 0.6
+duplicate_threshold: 0.35
+tone: friendly, concise, respectful, and specific
