@@ -73,6 +73,18 @@ function renderMarkdown(md) {
   return html;
 }
 
+const SunIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+    <circle cx="12" cy="12" r="4.2" />
+    <path d="M12 2.5v2M12 19.5v2M4.6 4.6l1.4 1.4M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4l1.4-1.4M18 6l1.4-1.4" />
+  </svg>
+);
+const MoonIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round">
+    <path d="M20 14.4A8 8 0 1 1 9.6 4 6.5 6.5 0 0 0 20 14.4z" />
+  </svg>
+);
+
 const Tag = ({ text, lang }) => (
   <span className={`tag t-${tone(text)}`}><i className="dot" />{tV(lang, text)}</span>
 );
@@ -84,13 +96,13 @@ function AgentBlock({ decision, name, lang, L }) {
       <div className="a-head">
         <span className="a-name">{tAgent(lang, name)}</span>
         <Tag text={decision.verdict} lang={lang} />
-        <span className="conf">{L.conf} {(decision.confidence || 0).toFixed(2)}</span>
+        <span className="conf mono">{L.conf} {(decision.confidence || 0).toFixed(2)}</span>
       </div>
       <div className="rationale">{decision.rationale}</div>
       {(decision.evidence || []).map((e, i) => (
         <div key={i} className="ev">
           <span className="k">{e.kind}</span> · {e.detail}
-          {e.weight ? <span className={`w ${e.weight > 0 ? "pos" : "neg"}`}> ({e.weight > 0 ? "+" : ""}{e.weight.toFixed(2)})</span> : null}
+          {e.weight ? <span className={`w mono ${e.weight > 0 ? "pos" : "neg"}`}> ({e.weight > 0 ? "+" : ""}{e.weight.toFixed(2)})</span> : null}
         </div>
       ))}
       {name === "responder" && decision.data && decision.data.draft ? (
@@ -112,17 +124,24 @@ function ItemRow({ r, lang, L }) {
   const labels = actionOf(r, "add_labels")?.payload.labels || [];
   const pri = (tri.data && tri.data.priority) || "-";
   const kindLabel = it.kind === "pull_request" ? "PR" : "issue";
+  const applicable = qual.verdict && qual.verdict !== "not-applicable";
   const shown = ["triage", "quality", "reproducer", "responder"].map((a) => [a, decisionOf(r, a)]).filter(([, d]) => d);
   return (
     <div className={`item ${open ? "open" : ""}`}>
       <div className="row" onClick={() => setOpen(!open)}>
-        <span className="num">#{it.number}</span>
-        <span className="kind">{kindLabel}</span>
+        <span className="num mono">#{it.number}</span>
+        <span className="kind mono">{kindLabel}</span>
         <span className="title">{it.title}</span>
         <span className="meta">
-          <span className={`pri ${pri === "high" ? "pri-high" : pri === "medium" ? "pri-med" : ""}`}>{tPri(lang, pri)}</span>
+          <span className={`pri mono ${pri === "high" ? "pri-high" : pri === "medium" ? "pri-med" : ""}`}>{tPri(lang, pri)}</span>
           <Tag text={tri.verdict || "-"} lang={lang} />
-          {qual.verdict && qual.verdict !== "not-applicable" ? (<><Tag text={qual.verdict} lang={lang} /><span className="score">{slop}</span></>) : null}
+          {applicable ? (
+            <>
+              <Tag text={qual.verdict} lang={lang} />
+              <span className={`meter t-${tone(qual.verdict)}`}><i style={{ width: Math.round(slop * 100) + "%" }} /></span>
+              <span className="score mono">{slop}</span>
+            </>
+          ) : null}
           <span className="chev">&rsaquo;</span>
         </span>
       </div>
@@ -132,7 +151,7 @@ function ItemRow({ r, lang, L }) {
             {labels.map((l) => (<span key={l} className={`chip t-${tone(l)}`}><i className="dot" />{tV(lang, l)}</span>))}
           </div>
           {shown.map(([a, d]) => (<AgentBlock key={a} name={a} decision={d} lang={lang} L={L} />))}
-          <div className="approval">{L.proposed}{r.actions.map((a) => a.type).join(", ")}</div>
+          <div className="approval mono">{L.proposed}{r.actions.map((a) => a.type).join(", ")}</div>
         </div>
       ) : null}
     </div>
@@ -144,19 +163,24 @@ const StatCell = ({ n, label, hot }) => (
 );
 
 function initialLang() {
-  try {
-    const saved = localStorage.getItem("ma_lang");
-    if (saved) return saved;
-  } catch (e) { /* ignore */ }
+  try { const s = localStorage.getItem("ma_lang"); if (s) return s; } catch (e) { /* ignore */ }
   return (navigator.language || "en").toLowerCase().startsWith("zh") ? "zh" : "en";
+}
+function initialTheme() {
+  const attr = typeof document !== "undefined" && document.documentElement.getAttribute("data-theme");
+  if (attr) return attr;
+  return matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
 }
 
 export default function App() {
   const [lang, setLangState] = useState(initialLang);
+  const [theme, setTheme] = useState(initialTheme);
   const [repo, setRepo] = useState("");
   const [data, setData] = useState(null);
   const [error, setError] = useState("");
   const L = I18N[lang];
+
+  useEffect(() => { document.documentElement.setAttribute("data-theme", theme); }, [theme]);
 
   async function analyze(target, useLang) {
     const lg = useLang || lang;
@@ -166,9 +190,7 @@ export default function App() {
       const res = await fetch("/api/run" + q);
       if (!res.ok) throw new Error("HTTP " + res.status);
       setData(await res.json());
-    } catch (e) {
-      setError(String(e));
-    }
+    } catch (e) { setError(String(e)); }
   }
 
   useEffect(() => { analyze("", lang); /* eslint-disable-next-line */ }, []);
@@ -179,19 +201,28 @@ export default function App() {
     try { localStorage.setItem("ma_lang", next); } catch (e) { /* ignore */ }
     analyze(repo, next);
   }
+  function toggleTheme() {
+    const next = theme === "dark" ? "light" : "dark";
+    setTheme(next);
+    try { localStorage.setItem("ma_theme", next); } catch (e) { /* ignore */ }
+  }
 
   const counts = data?.stats?.counts || {};
   const s = data?.stats;
   return (
     <div>
-      <div className="rule-top" />
       <header>
         <div className="wrap">
           <div className="topbar">
-            <div className="brand"><div className="mark">m</div><div className="wordmark">maintainer-agent</div></div>
-            <div className="langtoggle">
-              <button className={lang === "en" ? "active" : ""} onClick={() => setLang("en")}>EN</button>
-              <button className={lang === "zh" ? "active" : ""} onClick={() => setLang("zh")}>中文</button>
+            <div className="brand"><div className="mark">m</div><div className="wordmark">maintainer&#8209;agent</div></div>
+            <div className="toggles">
+              <button className="iconbtn" onClick={toggleTheme} aria-label="Toggle theme">
+                {theme === "dark" ? <SunIcon /> : <MoonIcon />}
+              </button>
+              <div className="seg">
+                <button className={lang === "en" ? "active" : ""} onClick={() => setLang("en")}>EN</button>
+                <button className={lang === "zh" ? "active" : ""} onClick={() => setLang("zh")}>中文</button>
+              </div>
             </div>
           </div>
           <p className="sub">{L.tagline}</p>
@@ -202,15 +233,15 @@ export default function App() {
               onChange={(e) => setRepo(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter") analyze(repo.trim()); }}
             />
-            <button onClick={() => analyze(repo.trim())}>{L.analyze}</button>
-            <button className="secondary" onClick={() => analyze("")}>{L.demo}</button>
+            <button className="act" onClick={() => analyze(repo.trim())}>{L.analyze}</button>
+            <button className="ghost" onClick={() => analyze("")}>{L.demo}</button>
             <span className="hint">{L.hint}</span>
           </div>
-          <div className="status">
+          <div className="status mono">
             {s ? (
               <>
-                {L.st.source} <span>{data.offline ? "fixtures" : data.repo}</span> &nbsp; {L.st.backend} <span>{data.backend}</span>
-                &nbsp; {L.st.llm} <span>{data.llm}</span> &nbsp; {L.st.run} <span>{data.run_id}</span> &nbsp; {data.count} {L.st.items}
+                {L.st.source} <b>{data.offline ? "fixtures" : data.repo}</b> &nbsp; {L.st.backend} <b>{data.backend}</b>
+                &nbsp; {L.st.llm} <b>{data.llm}</b> &nbsp; {L.st.run} <b>{data.run_id}</b> &nbsp; {data.count} {L.st.items}
               </>
             ) : "\u00a0"}
           </div>

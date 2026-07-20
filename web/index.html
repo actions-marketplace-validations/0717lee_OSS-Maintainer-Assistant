@@ -4,6 +4,14 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>maintainer-agent</title>
+    <script>
+      // Resolve theme before paint (no flash): saved pref wins, else system.
+      try {
+        var _t = localStorage.getItem("ma_theme") ||
+          (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+        document.documentElement.setAttribute("data-theme", _t);
+      } catch (e) { document.documentElement.setAttribute("data-theme", "light"); }
+    </script>
   </head>
   <body>
     <div id="root"></div>
