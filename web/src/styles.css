@@ -68,7 +68,7 @@ main { padding: 6px 0 72px; }
 .stat { padding: 0 30px; }
 .stat:first-child { padding-left: 0; }
 .stat + .stat { border-left: 1px solid var(--border); }
-.stat .n { font-size: 40px; line-height: 1; font-weight: 700; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+.stat .n { font-size: clamp(30px, 6.5vw, 40px); line-height: 1; font-weight: 700; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
 .stat.hot .n { color: var(--danger); }
 .stat .l { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--text-3); margin-top: 9px; }
 
@@ -136,3 +136,20 @@ main { padding: 6px 0 72px; }
 .loading { color: var(--text-3); padding: 30px 4px; font-size: 14px; }
 footer { border-top: 1px solid var(--border); color: var(--text-3); font-size: 12.5px; padding: 22px 0 44px; margin-top: 8px; }
 footer a { color: var(--text-2); }
+
+@media (max-width: 640px) {
+  .wrap { padding: 0 16px; }
+  .topbar { padding-top: 16px; }
+  input { flex: 1 1 200px; min-width: 0; }
+  .stats { padding: 22px 0 18px; gap: 16px 22px; }
+  .stat { padding: 0; }
+  .stat + .stat { border-left: 0; }
+  .cols { gap: 22px; }
+  .panel { position: static; }
+  .row { flex-wrap: wrap; gap: 8px 10px; padding: 14px 12px; position: relative; }
+  .num { order: 1; } .kind { order: 2; }
+  .title { order: 3; flex-basis: 100%; }
+  .meta { order: 4; flex-basis: 100%; flex-wrap: wrap; gap: 8px 12px; }
+  .chev { position: absolute; right: 10px; top: 15px; }
+  .body { padding: 4px 12px 20px; }
+}

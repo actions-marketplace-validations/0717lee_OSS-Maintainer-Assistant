@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 
 const I18N = {
   en: {
-    tagline: "Sorts your issues and PRs, catches low-effort AI pull requests, and writes reply drafts. Nothing is sent without your say-so.",
+    tagline: "Triages your issues and pull requests, flags low-effort AI submissions, and drafts replies. You review and decide what to send.",
     placeholder: "owner/name  (leave blank to load sample data)",
     analyze: "Analyze", demo: "Sample data",
     hint: "Works on any public repo (no token needed).",
@@ -16,7 +16,7 @@ const I18N = {
     errPre: "Couldn't load: ", errSuf: ". Check the name and try again, or use the sample.",
   },
   zh: {
-    tagline: "帮你把 issue 和 PR 分类，挑出低质的 AI 灌水 PR，并写好回复草稿。它只给建议，发不发你说了算。",
+    tagline: "帮你分诊 issue 和 PR，挑出低质的 AI 灌水提交，并起草回复。你来审阅，发什么由你决定。",
     placeholder: "owner/name（留空则加载示例数据）",
     analyze: "分析", demo: "示例数据",
     hint: "任意公开仓库都能用，不需要 token。",
