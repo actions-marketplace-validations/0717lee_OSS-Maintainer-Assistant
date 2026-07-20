@@ -2,32 +2,32 @@ import React, { useEffect, useState } from "react";
 
 const I18N = {
   en: {
-    tagline: "A read-only, human-gated assistant that triages issues, flags likely AI slop, reproduces bugs, and drafts replies — every call shows its evidence.",
-    placeholder: "owner/name  (leave blank for the offline demo)",
-    analyze: "Analyze", demo: "Offline demo",
-    hint: "Public repos work without a token (rate-limited).",
+    tagline: "Sorts your issues and PRs, catches low-effort AI pull requests, and writes reply drafts. Nothing is sent without your say-so.",
+    placeholder: "owner/name  (leave blank to load sample data)",
+    analyze: "Analyze", demo: "Sample data",
+    hint: "Works on any public repo (no token needed).",
     listTitle: "Issues & pull requests", digestTitle: "Maintainer digest",
-    footer: "Read-only by default · nothing is posted without approval · ", source: "source",
-    loading: "Running the multi-agent pipeline…", loadingDemo: "Loading the offline demo…",
-    conf: "conf", draft: "Suggested reply (draft)", proposed: "proposed actions (require approval): ",
-    st: { source: "source", backend: "backend", llm: "llm", run: "run", items: "items" },
+    footer: "Read-only. It never posts without your approval. ", source: "source",
+    loading: "Analyzing…", loadingDemo: "Loading sample…",
+    conf: "conf", draft: "Draft reply", proposed: "Suggested actions (you approve): ",
+    st: { source: "source", backend: "backend", llm: "model", run: "run", items: "items" },
     stat: { reviewed: "reviewed", attention: "needs attention", duplicates: "duplicates",
       ready: "ready to review", good_first: "good first issue", more_info: "needs info" },
-    errPre: "Couldn't load: ", errSuf: ". Check the owner/name and rate limits, or try the offline demo.",
+    errPre: "Couldn't load: ", errSuf: ". Check the name and try again, or use the sample.",
   },
   zh: {
-    tagline: "只读、需人工确认的助手：分诊 issue、识别疑似 AI 灌水、复现 bug、起草回复——每个判断都附证据。",
-    placeholder: "owner/name（留空则加载离线演示）",
-    analyze: "分析", demo: "离线演示",
-    hint: "公开仓库无需 token 即可分析（有速率限制）。",
+    tagline: "帮你把 issue 和 PR 分类，挑出低质的 AI 灌水 PR，并写好回复草稿。它只给建议，发不发你说了算。",
+    placeholder: "owner/name（留空则加载示例数据）",
+    analyze: "分析", demo: "示例数据",
+    hint: "任意公开仓库都能用，不需要 token。",
     listTitle: "Issues 与 Pull Requests", digestTitle: "维护者摘要",
-    footer: "默认只读 · 未经批准不会发布 · ", source: "源码",
-    loading: "正在运行多 Agent 流水线…", loadingDemo: "正在加载离线演示…",
-    conf: "置信", draft: "建议回复（草稿）", proposed: "建议动作（需批准）：",
+    footer: "只读。未经你批准，绝不发布。", source: "源码",
+    loading: "分析中…", loadingDemo: "加载示例中…",
+    conf: "置信", draft: "回复草稿", proposed: "建议动作（你来批准）：",
     st: { source: "来源", backend: "后端", llm: "模型", run: "运行", items: "条" },
     stat: { reviewed: "已审阅", attention: "需关注", duplicates: "疑似重复",
       ready: "待评审", good_first: "适合新手", more_info: "信息不足" },
-    errPre: "加载失败：", errSuf: "。请检查 owner/name 与速率限制，或试用离线演示。",
+    errPre: "加载失败：", errSuf: "。请检查名称后重试，或使用示例数据。",
   },
 };
 const VMAP_ZH = {
@@ -214,7 +214,7 @@ export default function App() {
       <header>
         <div className="wrap">
           <div className="topbar">
-            <div className="brand"><div className="mark">m</div><div className="wordmark">maintainer&#8209;agent</div></div>
+            <span className="wordmark">maintainer<span className="dim">-agent</span></span>
             <div className="toggles">
               <button className="iconbtn" onClick={toggleTheme} aria-label="Toggle theme">
                 {theme === "dark" ? <SunIcon /> : <MoonIcon />}
@@ -240,7 +240,7 @@ export default function App() {
           <div className="status mono">
             {s ? (
               <>
-                {L.st.source} <b>{data.offline ? "fixtures" : data.repo}</b> &nbsp; {L.st.backend} <b>{data.backend}</b>
+                {L.st.source} <b>{data.offline ? "sample" : data.repo}</b> &nbsp; {L.st.backend} <b>{data.backend}</b>
                 &nbsp; {L.st.llm} <b>{data.llm}</b> &nbsp; {L.st.run} <b>{data.run_id}</b> &nbsp; {data.count} {L.st.items}
               </>
             ) : "\u00a0"}
