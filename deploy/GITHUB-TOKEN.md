@@ -35,10 +35,12 @@ cd /path/to/your/project
 python -c "from dotenv import load_dotenv; load_dotenv(); from maintainer_agent.api.server import app; import uvicorn; uvicorn.run(app, host='127.0.0.1', port=8000)"
 ```
 
-### 4. 配置到 HuggingFace Space（可选）
+### 4. 配置到 Render（可选）
 
-在 Space 的 **Settings → Variables and secrets** 里添加：
-- `GITHUB_TOKEN` = `github_pat_xxx...`（设为 Secret）
+在 Render 服务的 **Environment**（环境变量）里添加：
+- `GITHUB_TOKEN` = `github_pat_xxx...`（标记为敏感值 / Secret）
+
+（`render.yaml` 里已为 `GITHUB_TOKEN` 预留了注释占位（`sync: false`）：启用后不写入蓝图，仅在 Render 后台填值。）
 
 ### 5. 配置到 GitHub Action（可选）
 

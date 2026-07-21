@@ -1,6 +1,6 @@
 # maintainer-agent
 
-[![Live Demo](https://img.shields.io/badge/%F0%9F%9A%80-Live%20Demo-blue)](https://huggingface.co/spaces/0717lee/maintainer-agent)
+[![Live Demo](https://img.shields.io/badge/%F0%9F%9A%80-Live%20Demo-blue)](https://maintainer-agent.onrender.com)
 [![GitHub Action](https://img.shields.io/badge/%E2%9A%A1-GitHub%20Action-blue)](action.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
 
@@ -193,7 +193,6 @@ One click on Render (builds the Dockerfile, binds `$PORT`, has a free tier):
 
 [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/0717lee/OSS-Maintainer-Assistant)
 
-Or use Hugging Face Spaces (Docker) - see [`deploy/HUGGINGFACE.md`](deploy/HUGGINGFACE.md).
 Set `GITHUB_TOKEN` on the host to raise rate limits; `/api/run` caches results for
 ~2 min (`MAINTAINER_AGENT_CACHE_TTL`). The dashboard has an **EN / 中文** toggle.
 

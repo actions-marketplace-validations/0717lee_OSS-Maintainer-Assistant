@@ -1,6 +1,6 @@
 # maintainer-agent
 
-[![Live Demo](https://img.shields.io/badge/%F0%9F%9A%80-Live%20Demo-blue)](https://huggingface.co/spaces/0717lee/maintainer-agent)
+[![Live Demo](https://img.shields.io/badge/%F0%9F%9A%80-Live%20Demo-blue)](https://maintainer-agent.onrender.com)
 [![GitHub Action](https://img.shields.io/badge/%E2%9A%A1-GitHub%20Action-blue)](action.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
 
@@ -139,7 +139,6 @@ Render 一键部署（构建 Dockerfile，自动绑定 `$PORT`，有免费额度
 
 [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/0717lee/OSS-Maintainer-Assistant)
 
-或使用 Hugging Face Spaces（Docker）——见 [`deploy/HUGGINGFACE.md`](deploy/HUGGINGFACE.md)。
 在宿主设置 `GITHUB_TOKEN` 可提高限流；`/api/run` 会缓存结果约 2 分钟
 （`MAINTAINER_AGENT_CACHE_TTL`）。仪表盘支持 **EN / 中文** 切换。
 
