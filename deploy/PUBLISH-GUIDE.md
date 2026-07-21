@@ -89,7 +89,7 @@
 
 1. **提交所有代码到 GitHub**
    ```bash
-   cd C:\Users\谦友Lee\Desktop\Project\Ap
+   cd /path/to/your/project
    git add -A
    git commit -m "feat: multi-agent dashboard, GitHub Action, weekly reports, webhook, memory, CI analysis"
    git push origin main
@@ -161,14 +161,14 @@
    - 生成并复制
 
 2. **填入 .env**
-   打开 `C:\Users\谦友Lee\Desktop\Project\Ap\.env`：
+   打开项目根目录的 `.env`：
    ```
    GITHUB_TOKEN=github_pat_xxx你的token
    ```
 
 3. **重启后端验证**
    ```bash
-   cd C:\Users\谦友Lee\Desktop\Project\Ap
+   cd /path/to/your/project
    python -c "from dotenv import load_dotenv; load_dotenv(); from maintainer_agent.api.server import app; import uvicorn; uvicorn.run(app, host='127.0.0.1', port=8000)"
    ```
    访问 `http://localhost:8000/api/health` 确认正常，输入 `pallets/flask` 分析不再限流。

@@ -22,7 +22,7 @@
 
 ### 2. 填入 .env
 
-打开 `C:\Users\谦友Lee\Desktop\Project\Ap\.env`，找到 `GITHUB_TOKEN=` 行，填入：
+打开项目根目录的 `.env`，找到 `GITHUB_TOKEN=` 行，填入：
 
 ```
 GITHUB_TOKEN=github_pat_xxx你的token
@@ -31,7 +31,7 @@ GITHUB_TOKEN=github_pat_xxx你的token
 ### 3. 重启后端
 
 ```bash
-cd C:\Users\谦友Lee\Desktop\Project\Ap
+cd /path/to/your/project
 python -c "from dotenv import load_dotenv; load_dotenv(); from maintainer_agent.api.server import app; import uvicorn; uvicorn.run(app, host='127.0.0.1', port=8000)"
 ```
 
