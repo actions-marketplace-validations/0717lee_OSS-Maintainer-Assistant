@@ -1,10 +1,16 @@
 """HTTP API + bundled dashboard.
 
 Endpoints:
-    GET /api/health          -> backend / llm / version info
-    GET /api/run             -> run the pipeline and return results + digest
-    GET /api/audit           -> recent audit-log events
-    GET /                    -> the bundled single-page dashboard
+    GET  /api/health                           -> backend / llm / version info
+    GET  /api/run                               -> run the pipeline and return results + digest
+    GET  /api/audit                             -> recent audit-log events
+    GET  /api/memory/{repo}/contributors/{a}    -> contributor cross-run profile
+    GET  /api/memory/{repo}/summary             -> repo aggregate memory stats
+    POST /api/webhook                           -> GitHub webhook auto-triage (HMAC verified)
+    POST /api/approve                           -> execute a proposed action on GitHub
+    POST /api/ask                               -> interactive follow-up Q&A with LLM
+    POST /api/ci-analyze                         -> CI failure log categorization + LLM diagnosis
+    GET  /                                       -> the bundled single-page dashboard
 
 The React/Vite app in ``web/`` consumes the same JSON API; CORS is open so it can
 run from the Vite dev server during development.

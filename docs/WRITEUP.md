@@ -93,9 +93,10 @@ point `--dataset` at real labels for a true measurement.
 ## What I'd do next
 
 - A contributor/skill **Matcher** (good-first-issues to newcomers).
-- CI-failure summarization and multi-language reproduction.
+- Multi-language reproduction (currently Python only).
 - Package as a GitHub App with a review UI over the audit log.
 - Larger, real-world labeled eval sets per ecosystem.
+- Interactive approve via webhook callback (currently approve is manual from dashboard).
 
 ## Reproducing the demo assets
 

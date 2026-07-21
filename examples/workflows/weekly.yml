@@ -31,5 +31,5 @@ jobs:
           lang: en
           github-token: ${{ secrets.GITHUB_TOKEN }}
           limit: "100"
-          # llm-model: deepseek/deepseek-chat
+          # llm-model: deepseek/deepseek-v4-flash
           # llm-api-key: ${{ secrets.DEEPSEEK_API_KEY }}

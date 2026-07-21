@@ -16,7 +16,7 @@ developer communities. Replace the demo/GIF links (and confirm the
 
 - [ ] Repo hygiene: README (EN + 中文), LICENSE, CONTRIBUTING, topics/tags, description.
 - [ ] Live demo link (or `docker run` one-liner) + a short GIF/screenshot in the README.
-- [ ] Publish the image to GHCR and tag `v0.1.0`; verify `uses: 0717lee/OSS-Maintainer-Assistant@v1`.
+- [ ] Publish the image to GHCR and tag `v1.0.0`; verify `uses: 0717lee/OSS-Maintainer-Assistant@v1`.
 - [ ] Turn on the self-demo Action so the repo shows a real digest in its Actions tab.
 - [ ] Prepare a pinned "author" first comment with context + FAQ.
 - [ ] Line up 2-3 friends to give early, honest feedback (not upvote rings).

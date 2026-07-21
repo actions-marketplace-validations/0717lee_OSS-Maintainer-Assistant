@@ -4,7 +4,7 @@
 
 ### What's included
 
-- **Multi-agent triage**: Triage, Quality/AI-slop, Reproducer, Responder, Digest agents orchestrated via LangGraph
+- **Multi-agent triage**: Triage, Quality/AI-slop, Reproducer, Responder, Digest, CI-failure agents orchestrated via LangGraph
 - **AI slop detection**: Weighted signals (AI phrases, missing linked issues, sweeping diffs, missing tests) with explainable scores
 - **Bug reproduction**: Python snippets run in a locked-down Docker sandbox (`--network none --cap-drop ALL --read-only`)
 - **Drafted replies**: Situation-aware reply templates, optionally rewritten by LLM
@@ -12,7 +12,18 @@
 - **Two modes**: `digest` (snapshot) and `weekly` (last N days report)
 - **Bilingual**: English and Chinese digest support
 - **Optional LLM**: Plug in any litellm-compatible model (DeepSeek, OpenAI, Anthropic, etc.) for enhanced analysis
-- **Tiered LLM strategy**: Per-agent model assignment; low-risk items skip LLM entirely
+- **Per-agent LLM models**: Assign different models per agent (e.g. flash for triage, pro for quality)
+- **Tiered LLM strategy**: Low-risk items (score < 0.3) skip LLM entirely; Responder skips LLM for normal replies
+- **Pipeline parallelism**: ThreadPoolExecutor (8 workers) for concurrent item processing
+- **Webhook endpoint**: `POST /api/webhook` for GitHub event-driven auto-triage with HMAC verification
+- **Interactive approve**: `POST /api/approve` to execute proposed actions (labels/comment/close) from the dashboard
+- **Follow-up Q&A**: `POST /api/ask` for interactive questions about specific items
+- **CI failure analysis**: `POST /api/ci-analyze` with rule-based pattern matching + LLM diagnosis
+- **Agent memory**: SQLite persistent cross-run memory for contributor profiles and item history
+- **Contributor risk profiles**: High/medium/low risk labels based on historical slop patterns
+- **Clickable stat cards**: Filter the issue list by clicking stat cards (attention, duplicates, ready, etc.)
+- **DigestModal**: Digest view as a centered modal popup (full-width issue list)
+- **Tailwind CSS dashboard**: Redesigned with dark/light theme, skeleton loading, empty/error states
 - **Read-only by design**: Never posts to your repo; all output goes to the job summary
 
 ### Usage

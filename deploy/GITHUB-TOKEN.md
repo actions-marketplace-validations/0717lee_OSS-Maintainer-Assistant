@@ -48,5 +48,5 @@ python -c "from dotenv import load_dotenv; load_dotenv(); from maintainer_agent.
 
 ## 验证
 
-启动后端后访问 `http://localhost:8000/api/health`，确认 `llm_available: true`。
+启动后端后访问 `http://localhost:8000/api/health` 确认服务正常。
 然后输入 `pallets/flask` 分析，不应该再出现 429 限流错误。

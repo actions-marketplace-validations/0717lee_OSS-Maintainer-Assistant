@@ -82,7 +82,10 @@ maintainer-agent run --repo pallets/flask --limit 20
 # 5. Generate a maintainer digest
 maintainer-agent digest --fixtures
 
-# 6. Run the reliability evaluation
+# 6. Generate a weekly report (last 7 days)
+maintainer-agent weekly --repo pallets/flask --lang en
+
+# 7. Run the reliability evaluation
 maintainer-agent eval
 ```
 
@@ -108,16 +111,39 @@ maintainer-agent run --repo owner/name --apply
 
 Without an LLM key the agents use a deterministic rule-based model; with one they
 additionally refine rationales and slop scores via `litellm` (any provider).
+Per-agent model assignment (`MAINTAINER_AGENT_LLM_MODEL_TRIAGE`,
+`_QUALITY`, `_RESPONDER`, `_DIGEST`) lets you use a fast model for triage/digest
+and a stronger model for quality/responder. A tiered strategy skips LLM entirely
+for low-risk items (heuristic score < 0.3).
 
-### React dashboard (optional)
+### React dashboard
 
-The `serve` command already ships a zero-build dashboard. A React/Vite version
-lives in `web/` and consumes the same JSON API:
+The `serve` command ships a React/Vite + Tailwind CSS dashboard. Build from source:
 
 ```bash
 maintainer-agent serve            # backend on :8000
 cd web && npm install && npm run dev   # dashboard on :5173 (proxies /api)
 ```
+
+The dashboard supports: clickable stat cards for list filtering, expandable
+issue/PR details with agent decisions + evidence, interactive approve buttons
+(labels/comment/close with confirmation), follow-up Q&A with the agent, CI
+failure log analysis (PRs only), contributor profiles from cross-run memory,
+and a modal digest view.
+
+### API endpoints
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/health` | Backend / LLM / version info |
+| `GET` | `/api/run` | Run the pipeline, return results + digest |
+| `GET` | `/api/audit` | Recent audit-log events |
+| `POST` | `/api/webhook` | GitHub webhook auto-triage (HMAC verified) |
+| `POST` | `/api/approve` | Execute a proposed action on GitHub (needs token) |
+| `POST` | `/api/ask` | Interactive follow-up Q&A with LLM |
+| `POST` | `/api/ci-analyze` | Analyze CI failure logs + LLM diagnosis |
+| `GET` | `/api/memory/{repo}/contributors/{author}` | Contributor cross-run profile |
+| `GET` | `/api/memory/{repo}/summary` | Repo aggregate memory stats |
 
 ## Use it on your repo (GitHub Action)
 
@@ -141,7 +167,7 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           # lang: zh              # digest language: en (default) or zh
-          # llm-model: deepseek/deepseek-chat  # enable real LLM (optional)
+          # llm-model: deepseek/deepseek-v4-flash  # enable real LLM (optional)
           # llm-api-key: ${{ secrets.DEEPSEEK_API_KEY }}  # provider key (optional)
 ```
 
@@ -227,29 +253,29 @@ keywords, and thresholds. The CLI also targets any live repo directly with
 
 ```
 maintainer_agent/
-  agents/        triage, quality, reproducer, responder, digest
-  orchestrator/  LangGraph graph + shared context (linear fallback)
-  core/          models, config, LLM abstraction, audit log, approval gate, text utils
+  agents/        triage, quality, reproducer, responder, digest, ci_failure
+  orchestrator/  LangGraph graph + shared context (linear fallback, thread-pool parallel)
+  core/          models, config, LLM abstraction (per-agent), audit log, approval gate
   github/        read-only client (+ offline fixtures) and gated writer
-  memory/        TF-IDF duplicate-detection index
+  memory/        TF-IDF/vector duplicate index (store.py) + SQLite agent memory (memory.py)
   sandbox/       Docker-backed snippet runner
-  api/           FastAPI service + bundled dashboard (static/)
+  api/           FastAPI service + bundled dashboard (static/) + webhook/approve/ask/CI endpoints
   eval/          labeled dataset + metrics
   configs/       per-repo YAML policy
-web/             React/Vite dashboard (optional)
-tests/           pytest suite (28 tests)
+web/             React/Vite + Tailwind CSS dashboard
+tests/           pytest suite (35 tests)
 ```
 
 ## Tech
 
-Python 3.11 - LangGraph - FastAPI - Pydantic v2 - React/Vite - Docker - FAISS/Chroma + litellm (optional).
+Python 3.11 - LangGraph - FastAPI - Pydantic v2 - React/Vite + Tailwind CSS - Docker - FAISS/Chroma + litellm (optional).
 
 ## Limitations & roadmap
 
 - The offline model is rule-based; real nuance needs an LLM key.
 - Duplicate detection defaults to TF-IDF; opt into FAISS (`[vectors]`) or Chroma (`[chroma]`) via `MAINTAINER_AGENT_VECTORS`.
 - Reproduction currently targets Python snippets.
-- Roadmap: contributor/skill matcher, CI-failure summaries, multi-language repro, GitHub App packaging.
+- Roadmap: contributor/skill matcher, multi-language repro (currently Python only), GitHub App packaging, interactive approve via webhook callback.
 
 ## License
 

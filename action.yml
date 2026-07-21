@@ -31,7 +31,7 @@ inputs:
     required: false
     default: ""
   llm-model:
-    description: "LLM model string for enhanced analysis (e.g. 'deepseek/deepseek-chat'). Leave empty for offline rule-based mode."
+    description: "LLM model string for enhanced analysis (e.g. 'deepseek/deepseek-v4-flash'). Leave empty for offline rule-based mode."
     required: false
     default: ""
   llm-api-key:

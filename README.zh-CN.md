@@ -61,12 +61,34 @@ maintainer-agent run --fixtures        # 离线演示，无需 token / API key
 maintainer-agent serve                 # 打开仪表盘 http://127.0.0.1:8000
 maintainer-agent run --repo pallets/flask --limit 20   # 任意公开仓库（免登录，有限流）
 maintainer-agent digest --fixtures     # 生成维护者摘要
+maintainer-agent weekly --repo pallets/flask --lang zh  # 生成周报（最近 7 天）
 maintainer-agent eval                  # 运行可靠性评估
 ```
 
 可选增强：`pip install -e ".[all]"`（LangGraph + LLM + FAISS）；复制 `.env.example`
-为 `.env` 填入 `OPENAI_API_KEY` / `GITHUB_TOKEN`（均可选）。无 LLM key 时使用确定性
-规则模型；有 key 时通过 `litellm` 精修评分与措辞。
+为 `.env` 填入 `DEEPSEEK_API_KEY` / `GITHUB_TOKEN`（均可选）。无 LLM key 时使用确定性
+规则模型；有 key 时通过 `litellm` 精修评分与措辞。支持**按 Agent 分配不同模型**
+（`MAINTAINER_AGENT_LLM_MODEL_TRIAGE` 等），轻量模型做分诊/摘要，强模型做质量/回复。
+
+### 仪表盘与 API
+
+`serve` 启动 React/Vite + Tailwind CSS 仪表盘。功能：可点击的统计卡片筛选列表、
+展开 Issue/PR 详情查看 Agent 决策与证据、交互式审批按钮（打标签/评论/关闭，带确认弹窗）、
+追问 Agent、CI 失败日志分析（仅 PR）、贡献者画像（跨 run 记忆）、弹窗式摘要视图。
+
+API 端点：
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| `GET` | `/api/health` | 后端 / LLM / 版本信息 |
+| `GET` | `/api/run` | 运行 pipeline，返回结果 + 摘要 |
+| `GET` | `/api/audit` | 审计日志 |
+| `POST` | `/api/webhook` | GitHub Webhook 自动分诊（HMAC 验证） |
+| `POST` | `/api/approve` | 执行建议动作（需 Token） |
+| `POST` | `/api/ask` | 追问 Agent（LLM 交互式问答） |
+| `POST` | `/api/ci-analyze` | CI 失败日志分析 + LLM 诊断 |
+| `GET` | `/api/memory/{repo}/contributors/{author}` | 贡献者跨 run 画像 |
+| `GET` | `/api/memory/{repo}/summary` | 仓库汇总记忆统计 |
 
 ## 在你的仓库里用（GitHub Action）
 
@@ -89,7 +111,13 @@ jobs:
       - uses: 0717lee/OSS-Maintainer-Assistant@v1
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
+          # lang: zh              # 摘要语言：en（默认）或 zh
+          # mode: weekly          # 周报模式
+          # llm-model: deepseek/deepseek-v4-flash  # 启用真实 LLM（可选）
+          # llm-api-key: ${{ secrets.DEEPSEEK_API_KEY }}
 ```
+
+不配 `llm-model` 时，Action 完全离线运行，使用确定性规则模型——无需 API key。
 
 ## 自托管
 
@@ -125,6 +153,6 @@ Render 一键部署（构建 Dockerfile，自动绑定 `$PORT`，有免费额度
 
 ## 技术栈
 
-Python 3.11 · LangGraph · FastAPI · Pydantic v2 · React/Vite · Docker · FAISS/Chroma + litellm（可选）。
+Python 3.11 · LangGraph · FastAPI · Pydantic v2 · React/Vite + Tailwind CSS · Docker · FAISS/Chroma + litellm（可选）。
 
 设计理念详见 [docs/WRITEUP.md](docs/WRITEUP.md)。许可证：MIT。
