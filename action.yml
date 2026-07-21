@@ -1,5 +1,5 @@
-name: "maintainer-agent"
-description: "Triage issues/PRs, flag likely AI slop, reproduce bugs, draft replies, and post a maintainer digest to the workflow summary. Read-only by design."
+name: "OSS Maintainer Assistant"
+description: "Triage issues/PRs, flag AI slop, reproduce bugs, draft replies, and post a maintainer digest. Read-only."
 author: "0717lee"
 branding:
   icon: "shield"
