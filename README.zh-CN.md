@@ -17,6 +17,12 @@ GitHub 自己新增的 PR 限流都是对此的回应）。现有工具大多是
 
 ---
 
+## 演示
+
+![maintainer-agent 仪表盘](docs/assets/dashboard.zh.png)
+
+仪表盘在内置的演示 tracker 上运行完整的多 Agent 流水线：把 PR #103 / #109 标记为疑似 AI slop，识别出 #102 是 #101 的重复，并突出安全 Issue #108——每条都带可展开的证据与一份回复草稿。设计思路见 [docs/WRITEUP.md](docs/WRITEUP.md)。
+
 ## 它能做什么
 
 一组协作的 Agent，用 **LangGraph** 编排（无依赖时自动降级为线性执行）逐条处理 Issue/PR：
