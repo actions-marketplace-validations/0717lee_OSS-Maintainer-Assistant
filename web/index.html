@@ -10,6 +10,7 @@
         var _t = localStorage.getItem("ma_theme") ||
           (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
         document.documentElement.setAttribute("data-theme", _t);
+        if (_t === "dark") document.documentElement.classList.add("dark");
       } catch (e) { document.documentElement.setAttribute("data-theme", "light"); }
     </script>
   </head>

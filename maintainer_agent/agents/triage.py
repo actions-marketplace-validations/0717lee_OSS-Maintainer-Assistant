@@ -17,6 +17,7 @@ from ..core.models import (
     Item,
     Severity,
 )
+from ..core.llm import get_agent_llm
 from ..core.text import contains_any, word_count
 from .base import Agent, clamp, make_action
 
@@ -204,7 +205,8 @@ class TriageAgent(Agent):
         return " ".join(parts)
 
     def _llm_augment(self, item, ctx, labels: set[str], evidence: list[Evidence]) -> None:
-        if not ctx.llm.available:
+        llm = get_agent_llm("triage")
+        if not llm.available:
             return
         prompt = (
             f"Classify this GitHub {item.kind.value} for triage.\n"
@@ -212,7 +214,7 @@ class TriageAgent(Agent):
             f"Title: {item.title}\n\nBody:\n{item.body[:2000]}\n\n"
             'Return JSON: {"labels": [...], "note": "one short sentence"}'
         )
-        out = ctx.llm.json(prompt, system="You are an expert open-source triager.")
+        out = llm.json(prompt, system="You are an expert open-source triager.")
         for lbl in out.get("labels", []) or []:
             if lbl in ctx.config.labels:
                 labels.add(lbl)

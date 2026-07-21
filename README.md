@@ -1,5 +1,9 @@
 # maintainer-agent
 
+[![Live Demo](https://img.shields.io/badge/%F0%9F%9A%80-Live%20Demo-blue)](https://huggingface.co/spaces/0717lee/maintainer-agent)
+[![GitHub Action](https://img.shields.io/badge/%E2%9A%A1-GitHub%20Action-blue)](action.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
+
 [English](README.md) | [中文](README.zh-CN.md)
 
 **A multi-agent assistant that helps open-source maintainers fight AI slop.**
@@ -136,7 +140,14 @@ jobs:
       - uses: 0717lee/OSS-Maintainer-Assistant@v1
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
+          # lang: zh              # digest language: en (default) or zh
+          # llm-model: deepseek/deepseek-chat  # enable real LLM (optional)
+          # llm-api-key: ${{ secrets.DEEPSEEK_API_KEY }}  # provider key (optional)
 ```
+
+Without `llm-model`, the Action runs fully offline with a deterministic rule-based
+model — no API key needed. With an LLM, triage, quality scoring, reply drafts,
+and digest summaries are enhanced by the model.
 
 ## Self-host
 

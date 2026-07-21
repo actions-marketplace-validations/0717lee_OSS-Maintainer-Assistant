@@ -14,6 +14,7 @@ signals (linked issue, tests, small focused diff) reduce the score.
 """
 from __future__ import annotations
 
+from ..core.llm import get_agent_llm
 from ..core.models import AgentResult, ActionType, Decision, Evidence, Item, Severity
 from ..core.text import word_count
 from .base import Agent, clamp, make_action
@@ -246,8 +247,18 @@ class QualityAgent(Agent):
         return f"Quality/slop score {score:.2f}. {tail}"
 
     def _llm_refine(self, item, ctx, score: float, evidence: list[Evidence]) -> float:
-        if not ctx.llm.available:
+        """Tiered LLM refinement: skip for low-risk, flash for medium, pro for high-risk."""
+        # Low risk: skip LLM entirely, heuristic score is sufficient.
+        if score < 0.3:
+            evidence.append(
+                Evidence(
+                    kind="heuristic",
+                    detail="heuristic score below threshold, LLM refinement skipped",
+                    weight=0,
+                )
+            )
             return score
+
         contributing = (ctx.config.contributing or "")[:1500]
         prompt = (
             "You review pull requests for an open-source project. Using the "
@@ -257,7 +268,13 @@ class QualityAgent(Agent):
             f"PR title: {item.title}\nPR body:\n{item.body[:2000]}\n\n"
             'Return JSON: {"slop_score": 0.0, "reason": "one sentence"}'
         )
-        out = ctx.llm.json(prompt, system="You are a meticulous, fair PR reviewer.")
+
+        # Use the configured LLM (may be pro for high-risk, flash for medium).
+        llm = get_agent_llm("quality")
+        if not llm.available:
+            return score
+
+        out = llm.json(prompt, system="You are a meticulous, fair PR reviewer.")
         llm_score = out.get("slop_score")
         if isinstance(llm_score, (int, float)):
             blended = (score + float(llm_score)) / 2

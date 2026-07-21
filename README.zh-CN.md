@@ -1,5 +1,9 @@
 # maintainer-agent
 
+[![Live Demo](https://img.shields.io/badge/%F0%9F%9A%80-Live%20Demo-blue)](https://huggingface.co/spaces/0717lee/maintainer-agent)
+[![GitHub Action](https://img.shields.io/badge/%E2%9A%A1-GitHub%20Action-blue)](action.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
+
 [English](README.md) | [中文](README.zh-CN.md)
 
 **帮助开源维护者对抗 AI slop 的多 Agent 助手。**

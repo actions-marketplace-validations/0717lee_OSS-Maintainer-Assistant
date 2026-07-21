@@ -1,0 +1,35 @@
+# maintainer-agent - weekly report workflow for YOUR repository.
+#
+# Copy this file into `.github/workflows/maintainer-agent-weekly.yml` in the
+# repo you maintain. It runs every Monday at 08:00 UTC and posts a weekly
+# maintainer report to the Actions "Summary" tab. Read-only, never posts.
+#
+# To use a real LLM for enhanced analysis, add the model + API key as repo
+# secrets and uncomment the llm-model / llm-api-key lines below.
+
+name: maintainer-agent weekly
+
+on:
+  schedule:
+    - cron: "0 8 * * 1"  # every Monday 08:00 UTC
+  workflow_dispatch:       # also runnable on-demand
+
+permissions:
+  contents: read
+  issues: read
+  pull-requests: read
+
+jobs:
+  weekly:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate weekly report
+        uses: 0717lee/OSS-Maintainer-Assistant@v1
+        with:
+          mode: weekly
+          days: "7"
+          lang: en
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          limit: "100"
+          # llm-model: deepseek/deepseek-chat
+          # llm-api-key: ${{ secrets.DEEPSEEK_API_KEY }}

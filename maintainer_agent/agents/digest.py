@@ -29,6 +29,9 @@ _STRINGS: dict[str, dict[str, str]] = {
         "suf_security": "security, prioritize",
         "suf_dup": "duplicate of #{n}",
         "suf_repro": "reproduced in sandbox",
+        "weekly_title": "Weekly maintainer report",
+        "weekly_title_for": "Weekly report for {repo}",
+        "weekly_intro": "Reviewing the last {days} days of activity ({n} new or updated items).",
     },
     "zh": {
         "title": "维护者摘要",
@@ -45,6 +48,9 @@ _STRINGS: dict[str, dict[str, str]] = {
         "suf_security": "安全问题，建议优先",
         "suf_dup": "重复于 #{n}",
         "suf_repro": "已在沙箱复现",
+        "weekly_title": "维护者周报",
+        "weekly_title_for": "{repo} 维护者周报",
+        "weekly_intro": "回顾过去 {days} 天的活动（{n} 个新增或更新的条目）。",
     },
 }
 
@@ -67,6 +73,10 @@ class DigestAgent:
         llm: Optional[Any] = None,
         lang: str = "en",
     ) -> str:
+        from ..core.llm import get_agent_llm
+        agent_llm = get_agent_llm("digest")
+        if agent_llm.available:
+            llm = agent_llm
         s = _STRINGS.get(lang, _STRINGS["en"])
         b = self._bucketize(results, lang=lang)
         now = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
@@ -80,6 +90,48 @@ class DigestAgent:
         if llm is not None and getattr(llm, "available", False):
             summary = llm.complete(
                 "In one sentence, summarize the state of this issue tracker for a "
+                f"maintainer. Counts: {({k: len(v) for k, v in b.items()})}. "
+                f"Reply in {'Chinese' if lang == 'zh' else 'English'}.",
+                system="You are a concise engineering assistant.",
+            ).strip()
+            if summary:
+                lines += [f"> {summary}", ""]
+
+        lines.append(f"## {s['glance']}")
+        for key in ("attention", "duplicates", "ready", "good_first", "more_info"):
+            lines.append(f"- {s[key]}: **{len(b[key])}**")
+        lines.append("")
+
+        for key in ("attention", "reproduced", "duplicates", "ready", "good_first", "more_info"):
+            self._section(lines, s[key], b[key])
+        return "\n".join(lines).rstrip() + "\n"
+
+    def build_weekly(
+        self,
+        results: list[PipelineResult],
+        repo: str = "",
+        llm: Optional[Any] = None,
+        lang: str = "en",
+        days: int = 7,
+    ) -> str:
+        """Generate a weekly report with the same body but a weekly title and intro."""
+        from ..core.llm import get_agent_llm
+        agent_llm = get_agent_llm("digest")
+        if agent_llm.available:
+            llm = agent_llm
+        s = _STRINGS.get(lang, _STRINGS["en"])
+        b = self._bucketize(results, lang=lang)
+        now = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+        lines: list[str] = []
+        title = s["weekly_title_for"].format(repo=repo) if repo else s["weekly_title"]
+        lines.append(f"# {title}")
+        lines.append("_" + s["weekly_intro"].format(days=days, n=len(results), now=now) + "_")
+        lines.append("")
+
+        # Optional one-line LLM summary.
+        if llm is not None and getattr(llm, "available", False):
+            summary = llm.complete(
+                f"In one sentence, summarize this week's issue tracker activity for a "
                 f"maintainer. Counts: {({k: len(v) for k, v in b.items()})}. "
                 f"Reply in {'Chinese' if lang == 'zh' else 'English'}.",
                 system="You are a concise engineering assistant.",

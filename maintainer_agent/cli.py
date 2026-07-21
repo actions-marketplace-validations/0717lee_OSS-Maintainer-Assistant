@@ -151,6 +151,7 @@ def run(
     fixtures: bool = typer.Option(False, "--fixtures", help="Force offline bundled fixtures."),
     limit: int = typer.Option(30, "--limit", "-n", help="Max items to analyze."),
     config: Optional[str] = typer.Option(None, "--config", "-c", help="Repo config name or path."),
+    lang: str = typer.Option("en", "--lang", help="Digest language: en or zh."),
     reproduce: bool = typer.Option(False, "--reproduce", help="Run bug snippets in the Docker sandbox."),
     apply: bool = typer.Option(False, "--apply", help="Enable APPLY mode with per-action approval prompts."),
     allow_write: bool = typer.Option(False, "--allow-write", help="With --apply, actually post to GitHub (needs token)."),
@@ -204,16 +205,55 @@ def digest(
     fixtures: bool = typer.Option(False, "--fixtures"),
     limit: int = typer.Option(30, "--limit", "-n"),
     config: Optional[str] = typer.Option(None, "--config", "-c"),
+    lang: str = typer.Option("en", "--lang", help="Digest language: en or zh."),
     out: Optional[Path] = typer.Option(None, "--out", "-o", help="Write the digest markdown to a file."),
 ) -> None:
     """Produce a maintainer digest for the tracker."""
     items, cfg, offline = _safe_load(repo, fixtures, limit, config)
     llm = get_llm()
     results = run_pipeline(items, cfg, llm=llm)
-    md = DigestAgent().build(results, repo=cfg.repo, llm=llm)
+    md = DigestAgent().build(results, repo=cfg.repo, llm=llm, lang=lang)
     if out:
         out.write_text(md, encoding="utf-8")
         console.print(f"[green]Wrote digest to {out}[/]")
+    else:
+        from rich.markdown import Markdown
+
+        console.print(Markdown(md))
+
+
+@app.command()
+def weekly(
+    repo: Optional[str] = typer.Option(None, "--repo", "-r", help="owner/name (required for live data)."),
+    fixtures: bool = typer.Option(False, "--fixtures", help="Use offline fixtures (for testing)."),
+    limit: int = typer.Option(100, "--limit", "-n", help="Max items to fetch before time-filtering."),
+    config: Optional[str] = typer.Option(None, "--config", "-c"),
+    lang: str = typer.Option("en", "--lang", help="Report language: en or zh."),
+    days: int = typer.Option(7, "--days", "-d", help="Look-back window in days."),
+    out: Optional[Path] = typer.Option(None, "--out", "-o", help="Write the report markdown to a file."),
+) -> None:
+    """Generate a weekly maintainer report (last N days of activity)."""
+    from datetime import datetime, timezone, timedelta
+
+    items, cfg, offline = _safe_load(repo, fixtures, limit, config)
+    if not items:
+        console.print("[red]No items found.[/]")
+        raise typer.Exit(1)
+
+    # Filter to items updated in the last `days` days.
+    cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+    recent = [it for it in items if it.updated_at and it.updated_at >= cutoff]
+    if not recent:
+        console.print(f"[yellow]No items updated in the last {days} days.[/]")
+        raise typer.Exit(0)
+
+    console.print(f"[cyan]Analyzing {len(recent)} items (last {days} days)...[/]")
+    llm = get_llm()
+    results = run_pipeline(recent, cfg, llm=llm)
+    md = DigestAgent().build_weekly(results, repo=cfg.repo, llm=llm, lang=lang, days=days)
+    if out:
+        out.write_text(md, encoding="utf-8")
+        console.print(f"[green]Wrote weekly report to {out}[/]")
     else:
         from rich.markdown import Markdown
 

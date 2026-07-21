@@ -45,7 +45,7 @@ maintainer_agent = [
     "configs/*.yaml",
     "github/fixtures/**/*",
     "eval/*.jsonl",
-    "api/static/*",
+    "api/static/**/*",
 ]
 
 [tool.pytest.ini_options]

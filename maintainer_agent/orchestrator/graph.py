@@ -183,7 +183,23 @@ def run_pipeline(
     use_graph: bool = True,
 ) -> list[PipelineResult]:
     """Process every item, sharing one context (so duplicate detection sees the
-    whole corpus) and one approval gate."""
+    whole corpus) and one approval gate.
+
+    Items are processed concurrently with a thread pool to overlap LLM API
+    latency. The serial path is used when there's only one item.
+    """
     ctx = build_context(items, config, llm=llm, sandbox=sandbox)
     gate = ApprovalGate(mode=mode, approver=approver, writer=writer, audit=audit)
-    return [process_item(it, ctx, gate, use_graph=use_graph) for it in items]
+
+    if len(items) <= 1:
+        return [process_item(it, ctx, gate, use_graph=use_graph) for it in items]
+
+    # Parallel path: overlap I/O-bound LLM calls across items.
+    from concurrent.futures import ThreadPoolExecutor
+
+    max_workers = min(len(items), 8)
+    with ThreadPoolExecutor(max_workers=max_workers) as pool:
+        results = list(pool.map(lambda it: process_item(it, ctx, gate, use_graph=use_graph), items))
+    # Preserve original order (pool.map already preserves order, but be explicit).
+    results.sort(key=lambda r: r.item.number)
+    return results

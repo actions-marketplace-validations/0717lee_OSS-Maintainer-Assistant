@@ -98,6 +98,36 @@ def _hashing_embedding(text: str, dim: int = 512) -> list[float]:
     return vec
 
 
+def get_embedding(text: str, dim: int = 512) -> list[float]:
+    """Return an embedding vector for *text*.
+
+    Uses a real embedding model via litellm when
+    ``MAINTAINER_AGENT_EMBEDDING_MODEL`` is set and a provider key is available.
+    Falls back to deterministic feature-hashing otherwise (no model download,
+    no API call, works fully offline).
+    """
+    model = os.getenv("MAINTAINER_AGENT_EMBEDDING_MODEL", "")
+    if not model:
+        return _hashing_embedding(text, dim)
+
+    provider_keys = ("OPENAI_API_KEY", "ANTHROPIC_API_KEY", "AZURE_API_KEY",
+                      "GEMINI_API_KEY", "DEEPSEEK_API_KEY")
+    if not any(os.getenv(k) for k in provider_keys):
+        return _hashing_embedding(text, dim)
+
+    try:
+        import litellm
+        resp = litellm.embedding(model=model, input=[text[:8000]])
+        vec = resp["data"][0]["embedding"]
+        # L2-normalize so cosine = inner product.
+        norm = math.sqrt(sum(v * v for v in vec))
+        if norm > 0:
+            vec = [v / norm for v in vec]
+        return vec
+    except Exception:
+        return _hashing_embedding(text, dim)
+
+
 class ChromaIndex:
     """A real Chroma-backed vector index (cosine space)."""
 
@@ -118,7 +148,7 @@ class ChromaIndex:
     def add(self, doc_id: int, text: str, title: str = "") -> None:
         self._col.add(
             ids=[str(doc_id)],
-            embeddings=[_hashing_embedding(text, self.dim)],
+            embeddings=[get_embedding(text, self.dim)],
             metadatas=[{"title": title}],
         )
         self._count += 1
@@ -129,7 +159,7 @@ class ChromaIndex:
             return
         self._col.add(
             ids=[str(it.number) for it in items],
-            embeddings=[_hashing_embedding(f"{it.title}\n{it.body}", self.dim) for it in items],
+            embeddings=[get_embedding(f"{it.title}\n{it.body}", self.dim) for it in items],
             metadatas=[{"title": it.title} for it in items],
         )
         self._count += len(items)
@@ -140,7 +170,7 @@ class ChromaIndex:
         if self._count == 0:
             return []
         n = min(top_k + 1, self._count)
-        res = self._col.query(query_embeddings=[_hashing_embedding(text, self.dim)], n_results=n)
+        res = self._col.query(query_embeddings=[get_embedding(text, self.dim)], n_results=n)
         ids = res["ids"][0]
         dists = res["distances"][0]
         metas = res.get("metadatas", [[]])[0] or [{}] * len(ids)
@@ -176,7 +206,7 @@ class FaissIndex:
 
     def _matrix(self, texts: list[str]):
         return self._np.array(
-            [_hashing_embedding(t, self.dim) for t in texts], dtype="float32"
+            [get_embedding(t, self.dim) for t in texts], dtype="float32"
         )
 
     def add(self, doc_id: int, text: str, title: str = "") -> None:

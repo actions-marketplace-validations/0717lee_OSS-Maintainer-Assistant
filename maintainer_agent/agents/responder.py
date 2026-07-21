@@ -9,6 +9,7 @@ it rewrites the draft in the repo's configured tone while keeping the same facts
 """
 from __future__ import annotations
 
+from ..core.llm import get_agent_llm
 from ..core.models import AgentResult, ActionType, Decision, Item
 from .base import Agent, make_action
 
@@ -107,7 +108,10 @@ class ResponderAgent(Agent):
             )
 
         draft = greeting + "\n\n" + "\n\n".join(blocks)
-        draft = self._llm_rewrite(item, ctx, draft, situation)
+        # Only use LLM to rewrite when the reply needs nuance (slop/quality concerns).
+        # For positive/generic replies the template draft is sufficient — saves a pro-model call.
+        if any(kw in situation for kw in ("slop", "needs-work", "needs-more-info", "security", "reproduced")):
+            draft = self._llm_rewrite(item, ctx, draft, situation)
 
         actions.insert(
             0,
@@ -146,7 +150,8 @@ class ResponderAgent(Agent):
         )
 
     def _llm_rewrite(self, item: Item, ctx, draft: str, situation: str) -> str:
-        if not ctx.llm.available:
+        llm = get_agent_llm("responder")
+        if not llm.available:
             return draft
         prompt = (
             f"Rewrite the following maintainer reply to be {ctx.config.tone}. "
@@ -154,5 +159,5 @@ class ResponderAgent(Agent):
             "details, and keep a warm tone even when declining.\n\n"
             f"Situation: {situation}\n\nDraft:\n{draft}"
         )
-        out = ctx.llm.complete(prompt, system="You write excellent open-source replies.")
+        out = llm.complete(prompt, system="You write excellent open-source replies.")
         return out.strip() or draft

@@ -104,7 +104,13 @@ class LiteLLM(BaseLLM):
         return extract_json(self.complete(prompt, system=sys, temperature=temperature))
 
 
-_PROVIDER_KEYS = ("OPENAI_API_KEY", "ANTHROPIC_API_KEY", "AZURE_API_KEY", "GEMINI_API_KEY")
+_PROVIDER_KEYS = (
+    "OPENAI_API_KEY",
+    "ANTHROPIC_API_KEY",
+    "AZURE_API_KEY",
+    "GEMINI_API_KEY",
+    "DEEPSEEK_API_KEY",
+)
 
 
 def _has_provider_key() -> bool:
@@ -120,3 +126,44 @@ def get_llm() -> BaseLLM:
         return LiteLLM(model)
     except Exception:  # litellm missing or misconfigured -> stay offline
         return MockLLM()
+
+
+# Per-agent LLM cache: avoids re-creating LiteLLM instances on every call.
+_LLM_CACHE: dict[str, BaseLLM] = {}
+
+
+def get_agent_llm(agent_name: str) -> BaseLLM:
+    """Return an LLM configured for a specific agent.
+
+    Checks ``MAINTAINER_AGENT_LLM_MODEL_<AGENT>`` first (e.g.
+    ``MAINTAINER_AGENT_LLM_MODEL_TRIAGE``), falling back to the
+    global ``MAINTAINER_AGENT_LLM_MODEL``.
+
+    This lets you use a cheap/fast model for triage & digest while
+    using a stronger reasoning model for quality & responder, all
+    with the same API key.
+
+    Returns MockLLM if nothing is configured.
+    """
+    if agent_name in _LLM_CACHE:
+        return _LLM_CACHE[agent_name]
+
+    # Agent-specific model, or fall back to the global default.
+    specific = os.getenv(f"MAINTAINER_AGENT_LLM_MODEL_{agent_name.upper()}", "")
+    model = specific or os.getenv("MAINTAINER_AGENT_LLM_MODEL", "")
+
+    if not model or not _has_provider_key():
+        llm = MockLLM()
+    else:
+        try:
+            llm = LiteLLM(model)
+        except Exception:
+            llm = MockLLM()
+
+    _LLM_CACHE[agent_name] = llm
+    return llm
+
+
+def clear_llm_cache() -> None:
+    """Clear the per-agent LLM cache (useful for testing)."""
+    _LLM_CACHE.clear()
