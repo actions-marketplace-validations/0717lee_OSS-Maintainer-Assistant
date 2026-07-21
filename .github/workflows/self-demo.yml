@@ -21,3 +21,7 @@ jobs:
         uses: ./
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
+          # lang: en              # en (default) or zh
+          # mode: weekly          # weekly report mode (last 7 days)
+          # llm-model: deepseek/deepseek-v4-flash  # enable real LLM (optional)
+          # llm-api-key: ${{ secrets.DEEPSEEK_API_KEY }}

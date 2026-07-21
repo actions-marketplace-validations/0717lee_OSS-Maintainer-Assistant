@@ -13,6 +13,8 @@ htmlcov
 tests
 web/node_modules
 web/dist
-*.md
-!README.md
+CONTRIBUTING.md
+docs/
+deploy/
+examples/
 .env

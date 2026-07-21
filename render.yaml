@@ -16,6 +16,6 @@ services:
       # - key: GITHUB_TOKEN
       #   sync: false
       # - key: MAINTAINER_AGENT_LLM_MODEL
-      #   value: gpt-4o-mini
-      # - key: OPENAI_API_KEY
+      #   value: deepseek/deepseek-v4-flash
+      # - key: DEEPSEEK_API_KEY
       #   sync: false
