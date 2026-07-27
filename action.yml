@@ -29,7 +29,7 @@ inputs:
   github-token:
     description: "Token used to read issues/PRs (defaults to the workflow token)."
     required: false
-    default: ""
+    default: ${{ github.token }}
   llm-model:
     description: "LLM model string for enhanced analysis (e.g. 'deepseek/deepseek-v4-flash'). Leave empty for offline rule-based mode."
     required: false
@@ -53,6 +53,6 @@ runs:
     INPUT_LIMIT: ${{ inputs.limit }}
     INPUT_DAYS: ${{ inputs.days }}
     INPUT_LANG: ${{ inputs.lang }}
-    GITHUB_TOKEN: ${{ inputs.github-token || github.token }}
+    GITHUB_TOKEN: ${{ inputs.github-token }}
     MAINTAINER_AGENT_LLM_MODEL: ${{ inputs.llm-model }}
     LLM_API_KEY: ${{ inputs.llm-api-key }}
