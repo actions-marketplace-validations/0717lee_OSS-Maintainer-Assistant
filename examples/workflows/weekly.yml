@@ -26,10 +26,10 @@ jobs:
       - name: Generate weekly report
         uses: 0717lee/OSS-Maintainer-Assistant@v1
         with:
+          # github-token defaults to the workflow token - no need to pass it.
           mode: weekly
           days: "7"
           lang: en
-          github-token: ${{ secrets.GITHUB_TOKEN }}
           limit: "100"
           # llm-model: deepseek/deepseek-v4-flash
           # llm-api-key: ${{ secrets.DEEPSEEK_API_KEY }}

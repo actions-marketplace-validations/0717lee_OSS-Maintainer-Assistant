@@ -116,12 +116,16 @@ jobs:
     steps:
       - uses: 0717lee/OSS-Maintainer-Assistant@v1
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          # github-token 默认使用 workflow token——无需显式传入。
           # lang: zh              # 摘要语言：en（默认）或 zh
           # mode: weekly          # 周报模式
           # llm-model: deepseek/deepseek-v4-flash  # 启用真实 LLM（可选）
           # llm-api-key: ${{ secrets.DEEPSEEK_API_KEY }}
+          limit: "30"
 ```
+
+workflow token 默认会传入 Action 容器（与 `actions/stale` 模式一致）；请像上面
+一样保持 `permissions:` 只读，或传 `github-token: ""` 完全退出（无认证、受限流）。
 
 不配 `llm-model` 时，Action 完全离线运行，使用确定性规则模型——无需 API key。
 

@@ -28,6 +28,13 @@ if [ -z "${REPO}" ]; then
   exit 0
 fi
 
+# The github-token input defaults to the workflow token, but an explicitly
+# empty value (e.g. an undefined secret) bypasses that default. Warn loudly
+# instead of silently degrading to unauthenticated, rate-limited API calls.
+if [ -z "${GITHUB_TOKEN:-}" ]; then
+  echo "::warning::github-token resolved to empty; running unauthenticated (60 req/h rate limit). Omit the input to use the workflow token."
+fi
+
 if [ "$MODE" = "weekly" ]; then
   CMD="maintainer-agent weekly --repo ${REPO} --limit ${LIMIT} --days ${DAYS} --lang ${LANG} --out /tmp/digest.md"
 else

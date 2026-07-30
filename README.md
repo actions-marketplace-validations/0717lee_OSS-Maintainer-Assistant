@@ -165,11 +165,16 @@ jobs:
     steps:
       - uses: 0717lee/OSS-Maintainer-Assistant@v1
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          # github-token defaults to the workflow token - no need to pass it.
           # lang: zh              # digest language: en (default) or zh
           # llm-model: deepseek/deepseek-v4-flash  # enable real LLM (optional)
           # llm-api-key: ${{ secrets.DEEPSEEK_API_KEY }}  # provider key (optional)
+          limit: "30"
 ```
+
+The workflow token is passed into the action container by default (same pattern
+as `actions/stale`); keep the workflow `permissions:` read-only as above, or opt
+out entirely with `github-token: ""` (unauthenticated, rate-limited).
 
 Without `llm-model`, the Action runs fully offline with a deterministic rule-based
 model — no API key needed. With an LLM, triage, quality scoring, reply drafts,

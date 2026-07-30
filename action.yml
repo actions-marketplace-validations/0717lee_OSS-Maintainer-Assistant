@@ -27,7 +27,11 @@ inputs:
     required: false
     default: "en"
   github-token:
-    description: "Token used to read issues/PRs (defaults to the workflow token)."
+    description: >-
+      Token used to read issues/PRs. Defaults to the workflow token, which is
+      passed into the action container on every run; pass an explicitly empty
+      value to opt out (runs unauthenticated and rate-limited). Note that an
+      undefined secret resolves to an empty string and bypasses this default.
     required: false
     default: ${{ github.token }}
   llm-model:
