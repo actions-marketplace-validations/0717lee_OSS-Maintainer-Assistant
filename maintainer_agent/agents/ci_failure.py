@@ -10,7 +10,6 @@ import re
 from typing import Any, Optional
 
 from ..core.llm import BaseLLM
-from ..core.models import Decision, Evidence, AgentResult
 
 # Rule-based failure patterns (used when no LLM).
 _PATTERNS: list[tuple[str, str, str]] = [

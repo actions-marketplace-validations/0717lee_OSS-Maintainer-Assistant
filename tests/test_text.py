@@ -1,16 +1,7 @@
 from maintainer_agent.core.text import (
-    cosine,
     extract_code_blocks,
     extract_linked_issues,
 )
-
-
-def test_cosine_similar_vs_different():
-    a = "division by zero crash when averaging three numbers"
-    b = "crash: zero division error averaging three values"
-    c = "add a dark mode toggle to the settings page"
-    assert cosine(a, b) > cosine(a, c)
-    assert 0.0 <= cosine(a, c) <= 1.0
 
 
 def test_extract_linked_issues():

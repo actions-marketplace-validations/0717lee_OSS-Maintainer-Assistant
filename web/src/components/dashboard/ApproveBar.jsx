@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { Check, X, Loader2, Tag, MessageSquare, XCircle, RotateCcw } from "lucide-react";
-import { cn } from "../../lib/utils";
+import { Check, Loader2, Tag, MessageSquare, XCircle, RotateCcw } from "lucide-react";
 import { ConfirmDialog } from "../shared/ConfirmDialog";
 
 const ACTION_ICONS = {
@@ -127,8 +126,7 @@ export function ApproveBar({ actions, repo, itemNumber, itemTitle, lang, L }) {
                   <div className="flex items-center gap-1.5">
                     <button
                       onClick={() => setDialogAction(action)}
-                      disabled={status === "applied"}
-                      className="inline-flex items-center gap-1 rounded-md border border-accent bg-accent px-2.5 py-1 text-xs font-semibold text-canvas transition-all duration-150 hover:opacity-90 disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-weak"
+                      className="inline-flex items-center gap-1 rounded-md border border-accent bg-accent px-2.5 py-1 text-xs font-semibold text-canvas transition-all duration-150 hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-weak"
                     >
                       <Check size={12} />
                       {lang === "zh" ? "批准" : "Approve"}

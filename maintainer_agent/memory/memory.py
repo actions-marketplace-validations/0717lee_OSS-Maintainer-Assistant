@@ -9,8 +9,6 @@ The database lives in the runtime directory (``.runtime/memory.db`` by default).
 """
 from __future__ import annotations
 
-import json
-import os
 import sqlite3
 from datetime import datetime, timezone
 from pathlib import Path
@@ -158,9 +156,16 @@ class AgentMemory:
             return {}
         return dict(row)
 
-    def get_contributor_risk_label(self, author: str, repo: str) -> str:
+    def get_contributor_risk_label(
+        self,
+        author: str,
+        repo: str,
+        *,
+        stats: dict[str, Any] | None = None,
+    ) -> str:
         """Quick risk assessment: 'high', 'medium', 'low', or 'unknown'."""
-        stats = self.get_contributor_stats(author, repo)
+        if stats is None:
+            stats = self.get_contributor_stats(author, repo)
         if not stats:
             return "unknown"
         slop_count = stats.get("slop_count", 0)

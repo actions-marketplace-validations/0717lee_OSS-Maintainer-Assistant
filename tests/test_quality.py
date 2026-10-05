@@ -22,6 +22,7 @@ def test_docs_only_pr_not_penalized_for_missing_tests(by_number, ctx):
     # #107 changes only a doc file; the "no tests" penalty must not apply.
     d = _quality(by_number, ctx, 107)
     assert d.verdict == "looks-good"
+    assert not any("adds no tests" in ev.detail for ev in d.evidence)
 
 
 def test_quality_not_applicable_to_issues(by_number, ctx):

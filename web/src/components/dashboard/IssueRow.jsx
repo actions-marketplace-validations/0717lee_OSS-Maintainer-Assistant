@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { ChevronRight } from "lucide-react";
 import { cn } from "../../lib/utils";
-import { tone, tPri } from "../../lib/i18n";
+import { tPri } from "../../lib/i18n";
 import { Tag } from "../shared/Tag";
 import { ConfidenceMeter } from "../shared/ConfidenceMeter";
 import { AgentBlock } from "./AgentBlock";

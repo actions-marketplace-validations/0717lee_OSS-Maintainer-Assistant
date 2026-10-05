@@ -5,9 +5,7 @@ reproducible.
 """
 from __future__ import annotations
 
-import math
 import re
-from collections import Counter
 
 _WORD = re.compile(r"[a-zA-Z0-9_]+")
 
@@ -28,22 +26,6 @@ def tokenize(text: str) -> list[str]:
 
 def content_tokens(text: str) -> list[str]:
     return [t for t in tokenize(text) if t not in _STOPWORDS]
-
-
-def bag_of_words(text: str) -> Counter:
-    return Counter(content_tokens(text))
-
-
-def cosine(a: str, b: str) -> float:
-    """Bag-of-words cosine similarity in ``[0, 1]``."""
-    ca, cb = bag_of_words(a), bag_of_words(b)
-    if not ca or not cb:
-        return 0.0
-    common = set(ca) & set(cb)
-    num = sum(ca[t] * cb[t] for t in common)
-    da = math.sqrt(sum(v * v for v in ca.values()))
-    db = math.sqrt(sum(v * v for v in cb.values()))
-    return num / (da * db) if da and db else 0.0
 
 
 def contains_any(text: str, needles: list[str]) -> list[str]:

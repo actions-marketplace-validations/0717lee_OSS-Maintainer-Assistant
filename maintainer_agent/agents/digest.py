@@ -121,11 +121,10 @@ class DigestAgent:
             llm = agent_llm
         s = _STRINGS.get(lang, _STRINGS["en"])
         b = self._bucketize(results, lang=lang)
-        now = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
         lines: list[str] = []
         title = s["weekly_title_for"].format(repo=repo) if repo else s["weekly_title"]
         lines.append(f"# {title}")
-        lines.append("_" + s["weekly_intro"].format(days=days, n=len(results), now=now) + "_")
+        lines.append("_" + s["weekly_intro"].format(days=days, n=len(results)) + "_")
         lines.append("")
 
         # Optional one-line LLM summary.

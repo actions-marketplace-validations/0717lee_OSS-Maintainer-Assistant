@@ -52,33 +52,18 @@ export default function App() {
       </div>
 
       <main className="container-main pb-[72px]">
-        {data || loading ? (
-          <>
-            {loading ? <SkeletonStats /> : <StatsBar stats={data?.stats} L={L} filter={filter} setFilter={setFilter} />}
-            <IssueList
-              data={data}
-              error={error}
-              loading={loading}
-              repo={repo}
-              lang={lang}
-              L={L}
-              filter={filter}
-              onRetry={() => analyze(repo)}
-              onOpenDigest={() => setDigestOpen(true)}
-            />
-          </>
-        ) : (
-          <IssueList
-            data={data}
-            error={error}
-            loading={loading}
-            repo={repo}
-            lang={lang}
-            L={L}
-            onRetry={() => analyze(repo)}
-            onOpenDigest={() => setDigestOpen(true)}
-          />
-        )}
+        {loading ? <SkeletonStats /> : data ? <StatsBar stats={data?.stats} L={L} filter={filter} setFilter={setFilter} /> : null}
+        <IssueList
+          data={data}
+          error={error}
+          loading={loading}
+          repo={repo}
+          lang={lang}
+          L={L}
+          filter={filter}
+          onRetry={() => analyze(repo)}
+          onOpenDigest={() => setDigestOpen(true)}
+        />
       </main>
 
       <Footer L={L} />

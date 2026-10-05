@@ -50,18 +50,6 @@ class RepoConfig(BaseModel):
             "low": ["typo", "docs", "nit", "cosmetic"],
         }
     )
-    bug_keywords: list[str] = Field(
-        default_factory=lambda: [
-            "error",
-            "crash",
-            "traceback",
-            "exception",
-            "stack trace",
-            "reproduce",
-            "steps to reproduce",
-        ]
-    )
-
     # Thresholds (0..1).
     slop_threshold: float = 0.6  # >= this -> flag as likely AI slop
     duplicate_threshold: float = 0.35  # >= this same-kind similarity -> likely duplicate

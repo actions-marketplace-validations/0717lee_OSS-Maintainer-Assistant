@@ -43,7 +43,6 @@ _CODE_EXT = (
     ".py", ".js", ".ts", ".tsx", ".jsx", ".go", ".java", ".rb", ".rs",
     ".c", ".cc", ".cpp", ".h", ".hpp", ".cs", ".php", ".kt", ".swift",
 )
-_DOC_EXT = (".md", ".rst", ".txt", ".adoc")
 
 
 def _is_test_file(name: str) -> bool:
@@ -53,11 +52,6 @@ def _is_test_file(name: str) -> bool:
 
 def _is_code_file(name: str) -> bool:
     return name.lower().endswith(_CODE_EXT) and not _is_test_file(name)
-
-
-def _is_doc_file(name: str) -> bool:
-    low = name.lower()
-    return low.endswith(_DOC_EXT) or low.startswith("docs/") or "/docs/" in low
 
 
 class QualityAgent(Agent):

@@ -34,16 +34,6 @@ priority_keywords:
   medium: ["error", "fails", "unexpected", "incorrect", "wrong"]
   low: ["typo", "docs", "nit", "cosmetic", "spelling"]
 
-bug_keywords:
-  - error
-  - crash
-  - traceback
-  - exception
-  - stack trace
-  - reproduce
-  - steps to reproduce
-  - zerodivisionerror
-
 slop_threshold: 0.6
 duplicate_threshold: 0.35
 tone: friendly, concise, respectful, and specific

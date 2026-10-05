@@ -28,7 +28,6 @@ COPY docker/action-entrypoint.sh /app/action-entrypoint.sh
 RUN chmod +x /app/action-entrypoint.sh
 
 EXPOSE 8000
-ENV MAINTAINER_AGENT_LOG_LEVEL=INFO
 
 # Dashboard + JSON API. Binds $PORT when the host sets one (Render / Cloud Run / etc).
 CMD maintainer-agent serve --host 0.0.0.0 --port ${PORT:-8000}

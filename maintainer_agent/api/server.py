@@ -160,7 +160,7 @@ def api_contributor_memory(repo: str, author: str) -> dict:
     """Return a contributor's cross-run profile for the given repo."""
     mem = AgentMemory()
     stats = mem.get_contributor_stats(author, repo)
-    risk = mem.get_contributor_risk_label(author, repo)
+    risk = mem.get_contributor_risk_label(author, repo, stats=stats)
     mem.close()
     return {"author": author, "repo": repo, "stats": stats, "risk": risk}
 

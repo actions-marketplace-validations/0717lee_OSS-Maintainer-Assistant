@@ -8,8 +8,6 @@ services:
     healthCheckPath: /api/health
     autoDeploy: true
     envVars:
-      - key: MAINTAINER_AGENT_LOG_LEVEL
-        value: INFO
       - key: MAINTAINER_AGENT_CACHE_TTL
         value: "120"
       # Optional: raise GitHub rate limits and/or enable a real LLM.

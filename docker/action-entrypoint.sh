@@ -36,15 +36,13 @@ if [ -z "${GITHUB_TOKEN:-}" ]; then
 fi
 
 if [ "$MODE" = "weekly" ]; then
-  CMD="maintainer-agent weekly --repo ${REPO} --limit ${LIMIT} --days ${DAYS} --lang ${LANG} --out /tmp/digest.md"
+  CMD=(maintainer-agent weekly --repo "${REPO}" --limit "${LIMIT}" --days "${DAYS}" --lang "${LANG}" --out /tmp/digest.md)
 else
-  CMD="maintainer-agent digest --repo ${REPO} --limit ${LIMIT} --lang ${LANG} --out /tmp/digest.md"
+  CMD=(maintainer-agent digest --repo "${REPO}" --limit "${LIMIT}" --lang "${LANG}" --out /tmp/digest.md)
 fi
 
-if eval "${CMD}"; then
+if "${CMD[@]}"; then
   cat /tmp/digest.md >> "${SUMMARY}"
-  # Also emit the full machine-readable results for downstream steps/artifacts.
-  maintainer-agent run --repo "${REPO}" --limit "${LIMIT}" --lang "${LANG}" --json /tmp/results.json >/dev/null 2>&1 || true
   if [ -n "${GITHUB_OUTPUT:-}" ]; then
     echo "digest-path=/tmp/digest.md" >> "${GITHUB_OUTPUT}"
   fi
